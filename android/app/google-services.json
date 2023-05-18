@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "749238580298",
+    "project_id": "flutterhimnavi",
+    "storage_bucket": "flutterhimnavi.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:749238580298:android:3614af2d64818145c6e2b3",
+        "android_client_info": {
+          "package_name": "com.example.himi_navi_rec"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "749238580298-drcqk0ffsmlscjfrr05l9aibvhg2gvos.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCKPYZdoTx6j_6dVZu1MwtTt1Kzfr9h668"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "749238580298-drcqk0ffsmlscjfrr05l9aibvhg2gvos.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
