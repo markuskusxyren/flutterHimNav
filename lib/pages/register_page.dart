@@ -125,11 +125,11 @@ class _RegisterPageState extends State<RegisterPage> {
     } on FirebaseAuthException catch (e) {
       Navigator.pop(context); // close the loading dialog
       print(e);
-      if (e.message!.contains('firebase_auth/weak-password')) {
+      if (e.code == 'weak-password') {
         showMessage('The password provided is too weak.');
-      } else if (e.message!.contains('firebase_auth/already-in-use')) {
+      } else if (e.code == 'email-already-in-use') {
         showMessage('An account already exists for that email.');
-      } else if (e.message!.contains('firebase_auth/invalid-email')) {
+      } else if (e.code == 'invalid-email') {
         showMessage('The email address is not valid.');
       } else {
         showMessage('Registration failed. Please try again later.');
