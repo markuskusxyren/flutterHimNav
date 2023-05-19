@@ -36,7 +36,7 @@ class _HomePageState extends State<HomePage> {
           MaterialPageRoute(builder: (context) => const LoginPage()),
         );
       } else {
-        FirebaseFirestore.instance.collection('userID').doc(user.uid).set({
+        FirebaseFirestore.instance.collection('userID').doc(user.uid).update({
           'isVerified': true,
         });
       }
