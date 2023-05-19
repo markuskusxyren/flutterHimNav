@@ -37,7 +37,6 @@ class _HomePageState extends State<HomePage> {
         );
       } else {
         FirebaseFirestore.instance.collection('userID').doc(user.uid).set({
-          'email': user.email,
           'isVerified': true,
         });
       }
