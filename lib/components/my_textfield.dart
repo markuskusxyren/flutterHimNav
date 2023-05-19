@@ -54,7 +54,8 @@ class _MyTextFieldState extends State<MyTextField> {
               : null,
           // Additional hint text
           hintText: widget.additionalHint,
-          hintStyle: const TextStyle(color: Colors.grey),
+          hintStyle:
+              const TextStyle(color: Colors.grey, fontSize: 12), // Updated line
         ),
       ),
     );

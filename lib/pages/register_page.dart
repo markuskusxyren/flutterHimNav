@@ -193,7 +193,7 @@ class _RegisterPageState extends State<RegisterPage> {
                           hintText: 'Password',
                           obscureText: true,
                           additionalHint:
-                              'One uppercase, one number, one special character is required',
+                              'One uppercase letter, one number, and one special character is required',
                         ),
 
                         const SizedBox(height: 30),

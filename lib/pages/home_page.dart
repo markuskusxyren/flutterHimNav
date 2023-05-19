@@ -4,6 +4,7 @@ import 'package:himi_navi_rec/pages/login_page.dart';
 import 'package:himi_navi_rec/pages/dashboard_page.dart';
 import 'package:himi_navi_rec/pages/map_page.dart';
 import 'package:himi_navi_rec/pages/records_page.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:async';
 
 class HomePage extends StatefulWidget {
@@ -21,6 +22,7 @@ class _HomePageState extends State<HomePage> {
 
   final FirebaseAuth _auth = FirebaseAuth.instance;
   late StreamSubscription<User?> _authSubscription;
+  late StreamSubscription<DocumentSnapshot> _verificationSubscription;
 
   int _currentIndex = 0; // Variable for the currently selected index
 
@@ -33,6 +35,22 @@ class _HomePageState extends State<HomePage> {
           context,
           MaterialPageRoute(builder: (context) => const LoginPage()),
         );
+      } else {
+        _verificationSubscription = FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.uid)
+            .snapshots()
+            .listen((DocumentSnapshot snapshot) {
+          Map<String, dynamic>? data = snapshot.data() as Map<String, dynamic>?;
+          bool? isVerified = data?['isVerified'];
+          if (isVerified == null) {
+            // Update isVerified to true
+            FirebaseFirestore.instance
+                .collection('users')
+                .doc(user.uid)
+                .update({'isVerified': true});
+          }
+        });
       }
     });
   }
@@ -40,6 +58,7 @@ class _HomePageState extends State<HomePage> {
   @override
   void dispose() {
     _authSubscription.cancel();
+    _verificationSubscription.cancel();
     super.dispose();
   }
 
