@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:himi_navi_rec/components/my_button.dart';
 import 'package:himi_navi_rec/components/my_textfield.dart';
@@ -77,32 +76,15 @@ class _LoginPageState extends State<LoginPage> {
         }
       }
     } on FirebaseAuthException catch (e) {
-      if (kIsWeb) {
-        print(e);
-        Navigator.pop(context);
-        // For the web, we can handle errors differently
-        if (e.message!.contains('firebase-auth/user-not-found')) {
-          showMessage('No user found for that email.');
-        } else if (e.message!.contains('firebase-auth/wrong-password')) {
-          showMessage('Wrong password provided for that user.');
-        } else {
-          showMessage('Login failed. Please try again later.');
-        }
+      print(e);
+      Navigator.pop(context);
+      // For the web, we can handle errors differently
+      if (e.message!.contains('firebase_auth/user-not-found')) {
+        showMessage('No user found for that email.');
+      } else if (e.message!.contains('firebase_auth/wrong-password')) {
+        showMessage('Wrong password provided for that user.');
       } else {
-        // For Android/iOS, we can handle as we did previously
-        if (e.code == 'user-not-found') {
-          showMessage('Incorrect Email');
-        } else if (e.code == 'wrong-password') {
-          showMessage('Incorrect Password');
-        } else if (e.code == 'invalid-email') {
-          showMessage('Invalid Email');
-        } else if (e.code == 'user-disabled') {
-          showMessage('User Disabled');
-        } else if (e.code == 'operation-not-allowed') {
-          showMessage('Operation Not Allowed');
-        } else {
-          showMessage('Login Failed');
-        }
+        showMessage('Login failed. Please try again later.');
       }
     }
   }
