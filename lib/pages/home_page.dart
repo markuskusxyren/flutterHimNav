@@ -36,20 +36,9 @@ class _HomePageState extends State<HomePage> {
           MaterialPageRoute(builder: (context) => const LoginPage()),
         );
       } else {
-        _verificationSubscription = FirebaseFirestore.instance
-            .collection('users')
-            .doc(user.uid)
-            .snapshots()
-            .listen((DocumentSnapshot snapshot) {
-          Map<String, dynamic>? data = snapshot.data() as Map<String, dynamic>?;
-          bool? isVerified = data?['isVerified'];
-          if (isVerified == null) {
-            // Update isVerified to true
-            FirebaseFirestore.instance
-                .collection('users')
-                .doc(user.uid)
-                .update({'isVerified': true});
-          }
+        FirebaseFirestore.instance.collection('userID').doc(user.uid).set({
+          'email': user.email,
+          'isVerified': true,
         });
       }
     });
