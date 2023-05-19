@@ -11,9 +11,7 @@
 		<string>Editor</string>
 		<key>CFBundleURLSchemes</key>
 		<array>
-			<!-- TODO Replace this value: -->
-			<!-- Copied from GoogleService-Info.plist key REVERSED_CLIENT_ID -->
-			<string>com.googleusercontent.apps.749238580298-5di3vsn9jktikduscfakccqoo9k3j5k7</string>
+			
 		</array>
 	</dict>
 </array>

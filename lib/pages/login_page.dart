@@ -78,11 +78,12 @@ class _LoginPageState extends State<LoginPage> {
       }
     } on FirebaseAuthException catch (e) {
       if (kIsWeb) {
+        print(e);
         Navigator.pop(context);
         // For the web, we can handle errors differently
-        if (e.message!.contains('auth/user-not-found')) {
+        if (e.message!.contains('firebase-auth/user-not-found')) {
           showMessage('No user found for that email.');
-        } else if (e.message!.contains('auth/wrong-password')) {
+        } else if (e.message!.contains('firebase-auth/wrong-password')) {
           showMessage('Wrong password provided for that user.');
         } else {
           showMessage('Login failed. Please try again later.');
