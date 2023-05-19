@@ -4,16 +4,17 @@ class MyTextField extends StatefulWidget {
   final TextEditingController controller;
   final String hintText;
   final bool obscureText;
+  final String? additionalHint; // New named parameter
 
   const MyTextField({
     Key? key,
     required this.controller,
     required this.hintText,
     required this.obscureText,
+    this.additionalHint, // Updated parameter
   }) : super(key: key);
 
   @override
-  // ignore: library_private_types_in_public_api
   _MyTextFieldState createState() => _MyTextFieldState();
 }
 
@@ -36,8 +37,8 @@ class _MyTextFieldState extends State<MyTextField> {
           ),
           fillColor: Colors.grey.shade200,
           filled: true,
-          hintText: widget.hintText,
-          hintStyle: const TextStyle(color: Colors.grey),
+          labelText: widget.hintText,
+          labelStyle: const TextStyle(color: Colors.grey),
           suffixIcon: widget.obscureText
               ? IconButton(
                   icon: Icon(
@@ -51,6 +52,9 @@ class _MyTextFieldState extends State<MyTextField> {
                   },
                 )
               : null,
+          // Additional hint text
+          hintText: widget.additionalHint,
+          hintStyle: const TextStyle(color: Colors.grey),
         ),
       ),
     );

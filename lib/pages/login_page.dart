@@ -4,7 +4,6 @@ import 'package:himi_navi_rec/components/my_button.dart';
 import 'package:himi_navi_rec/components/my_textfield.dart';
 import 'package:himi_navi_rec/pages/register_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-
 import 'home_page.dart';
 
 class LoginPage extends StatefulWidget {
@@ -58,13 +57,24 @@ class _LoginPageState extends State<LoginPage> {
       // ignore: use_build_context_synchronously
       Navigator.pop(context);
       if (userCredential.user != null) {
-        // ignore: use_build_context_synchronously
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-              builder: (context) =>
-                  const HomePage()), // replace HomePage with your destination page
-        );
+        if (userCredential.user!.emailVerified) {
+          // User is verified, proceed to home page
+          String? userEmail = userCredential.user!.email;
+          if (userEmail != null) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => HomePage(userEmail),
+              ),
+            );
+          } else {
+            // Handle case where email is null.
+            showMessage('Email is null. Please check your account details.');
+          }
+        } else {
+          // User is unverified, show error message
+          showMessage('Please verify your account before signing in.');
+        }
       }
     } on FirebaseAuthException catch (e) {
       if (kIsWeb) {
@@ -275,36 +285,6 @@ class _LoginPageState extends State<LoginPage> {
                 ),
 
                 const SizedBox(height: 25),
-
-                // or continue with
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 25.0),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Divider(
-                          thickness: 0.5,
-                          color: Colors.grey[400],
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 10.0),
-                        child: Text(
-                          'Or continue with',
-                          style: TextStyle(color: Colors.grey[700]),
-                        ),
-                      ),
-                      Expanded(
-                        child: Divider(
-                          thickness: 0.5,
-                          color: Colors.grey[400],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                const SizedBox(height: 30),
 
                 // not a member? register now
                 GestureDetector(

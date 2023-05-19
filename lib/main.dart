@@ -8,6 +8,11 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   runApp(const MyApp());
 }
 
@@ -47,57 +52,70 @@ class _SplashScreenState extends State<SplashScreen>
 
   void navigateToLoginPage() {
     Navigator.pushReplacement(
-        context, MaterialPageRoute(builder: (context) => const LoginPage()));
+      context,
+      MaterialPageRoute(builder: (context) => const LoginPage()),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color.fromARGB(
-          255, 212, 235, 255), // Set your desired background color here
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Stack(
-              alignment: Alignment.center,
-              children: [
-                const DecoratedBox(
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    gradient: RadialGradient(
-                      colors: [
-                        Color.fromARGB(255, 42, 188, 255),
-                        Color.fromARGB(0, 255, 255, 255)
-                      ],
-                      stops: [0.0, 1.0],
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              Color.fromARGB(255, 42, 188, 255),
+              Color.fromARGB(0, 255, 255, 255),
+            ],
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+          ),
+        ),
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Stack(
+                alignment: Alignment.center,
+                children: [
+                  const DecoratedBox(
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: RadialGradient(
+                        colors: [
+                          Color.fromARGB(255, 253, 255, 134),
+                          Color.fromARGB(0, 255, 255, 255),
+                        ],
+                        stops: [0.0, 1.0],
+                      ),
+                    ),
+                    child: SizedBox(
+                      width: 500,
+                      height: 500,
                     ),
                   ),
-                  child: SizedBox(
-                    width: 500, // set the size of the light effect
-                    height: 500, // set the size of the light effect
-                  ),
-                ),
-                ScaleTransition(
-                  scale: Tween(begin: 0.9, end: 1.1).animate(
-                    CurvedAnimation(
-                        parent: _controller, curve: Curves.easeInOut),
-                  ),
-                  child: SizedBox(
-                    width: 200, // Set the desired width of the image
-                    height: 200, // Set the desired height of the image
-                    child: Image.asset(
-                      'lib/images/himlogo.png', // replace this with your actual logo path
-                      fit: BoxFit
-                          .contain, // Adjust the image's fit as per your requirement
+                  ScaleTransition(
+                    scale: Tween(begin: 0.9, end: 1.1).animate(
+                      CurvedAnimation(
+                        parent: _controller,
+                        curve: Curves.easeInOut,
+                      ),
+                    ),
+                    child: SizedBox(
+                      width: 200,
+                      height: 200,
+                      child: Image.asset(
+                        'lib/images/himlogo.png',
+                        fit: BoxFit.contain,
+                      ),
                     ),
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            const CircularProgressIndicator(), // Add the CircularProgressIndicator widget
-          ],
+                ],
+              ),
+              const SizedBox(height: 16),
+              const CircularProgressIndicator(),
+            ],
+          ),
         ),
       ),
     );

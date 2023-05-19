@@ -1,20 +1,28 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:himi_navi_rec/pages/login_page.dart';
+import 'package:himi_navi_rec/pages/dashboard_page.dart';
+import 'package:himi_navi_rec/pages/map_page.dart';
+import 'package:himi_navi_rec/pages/records_page.dart';
 import 'dart:async';
-import 'package:cloud_firestore/cloud_firestore.dart';
 
 class HomePage extends StatefulWidget {
-  const HomePage({Key? key}) : super(key: key);
+  final String userEmail;
+  const HomePage(this.userEmail, {Key? key}) : super(key: key);
 
   @override
-  _HomePageState createState() => _HomePageState();
+  _HomePageState createState() => _HomePageState(userEmail);
 }
 
 class _HomePageState extends State<HomePage> {
+  final String userEmail;
+
+  _HomePageState(this.userEmail);
+
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  User? user; // <- Change this to nullable
   late StreamSubscription<User?> _authSubscription;
+
+  int _currentIndex = 0; // Variable for the currently selected index
 
   @override
   void initState() {
@@ -25,62 +33,43 @@ class _HomePageState extends State<HomePage> {
           context,
           MaterialPageRoute(builder: (context) => const LoginPage()),
         );
-      } else {
-        setState(() {
-          this.user = user; // Update user variable within setState
-        });
-        checkEmailVerification();
       }
     });
   }
 
   @override
   void dispose() {
-    _authSubscription
-        .cancel(); // cancelling the stream subscription when not needed to free up resources
+    _authSubscription.cancel();
     super.dispose();
   }
 
   void signUserOut() {
-    _auth.signOut();
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => const LoginPage()),
-    );
+    _auth.signOut().then((_) {
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (context) => const LoginPage()),
+        (route) => false,
+      );
+    }).catchError((error) {
+      print("Error signing out: $error");
+    });
   }
 
-  Future<void> checkEmailVerification() async {
-    if (!user!.emailVerified) {
-      // If email is not verified
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (context) {
-          return AlertDialog(
-            title: const Text('Email Not Verified'),
-            content: const Text('Please verify your email to continue.'),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  signUserOut(); // No need to pass the context here
-                },
-                child: const Text('Sign Out'),
-              ),
-            ],
-          );
-        },
-      );
-    } else {
-      // If email is verified
-      await FirebaseFirestore.instance.collection('userID').doc(user!.uid).set({
-        'email': user!.email,
-        'isVerified': true,
-      });
-    }
+  void _onItemTapped(int index) {
+    // Navigation handler
+    setState(() {
+      _currentIndex = index;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
+    final List<Widget> children = [
+      DashboardPage(userEmail),
+      const MapPage(),
+      const RecordsPage(),
+    ];
+
     return Scaffold(
       backgroundColor: Colors.grey[300],
       appBar: AppBar(
@@ -92,11 +81,24 @@ class _HomePageState extends State<HomePage> {
           ),
         ],
       ),
-      body: Center(
-        child: Text(
-          'LOGGED IN AS: ${user?.email ?? 'Loading...'}', // <- Check if user is not null before using
-          style: const TextStyle(fontSize: 20),
-        ),
+      body: children[_currentIndex],
+      bottomNavigationBar: BottomNavigationBar(
+        onTap: _onItemTapped,
+        currentIndex: _currentIndex,
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.home),
+            label: 'Dashboard',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.map),
+            label: 'Map',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.book),
+            label: 'Records',
+          ),
+        ],
       ),
     );
   }

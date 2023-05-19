@@ -30,7 +30,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-  google_sign_in: ^5.4.2
+  
 
 
 
@@ -40,6 +40,8 @@ dependencies:
   firebase_auth: ^4.6.1
   firebase_core: ^2.13.0
   cloud_firestore: ^4.7.1
+  zxcvbn: ^1.0.0
+  
 
 dev_dependencies:
   flutter_test:
