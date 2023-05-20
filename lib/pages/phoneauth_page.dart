@@ -177,6 +177,10 @@ class _PhoneAuthPageState extends State<PhoneAuthPage> {
     }
   }
 
+  void _copyToClipboard(BuildContext context) {
+    Clipboard.setData(ClipboardData(text: _base32Secret));
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -184,11 +188,34 @@ class _PhoneAuthPageState extends State<PhoneAuthPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
+            const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 50.0),
+              child: Text(
+                "Please download Google Authenticator App to obtain OTP. "
+                "Scan the QR code or press the button below to copy the key to your clipboard.",
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 18.0),
+              ),
+            ),
+            const SizedBox(height: 20.0),
             if (!_hasOTPSecret && _otpAuthUri != null)
-              QrImageView(
-                data: _otpAuthUri!,
-                version: QrVersions.auto,
-                size: 200.0,
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  QrImageView(
+                    data: _otpAuthUri!,
+                    version: QrVersions.auto,
+                    size: 200.0,
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: IconButton(
+                      icon: const Icon(Icons.content_copy),
+                      onPressed: () => _copyToClipboard(context),
+                      tooltip: 'Copy Key to Clipboard',
+                    ),
+                  ),
+                ],
               ),
             const SizedBox(height: 20.0),
             Padding(
