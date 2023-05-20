@@ -105,7 +105,7 @@ class _SplashScreenState extends State<SplashScreen>
                         turns: TweenSequence<double>([
                           TweenSequenceItem<double>(
                             tween: Tween<double>(begin: 0.0, end: -0.05),
-                            weight: 50,
+                            weight: 70,
                           ),
                           TweenSequenceItem<double>(
                             tween: Tween<double>(begin: -0.05, end: 0.0),
