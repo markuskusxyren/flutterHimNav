@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:himi_navi_rec/pages/login_page.dart';
 import 'firebase_options.dart';
+import 'package:himi_navi_rec/pages/login_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -38,14 +38,31 @@ class SplashScreen extends StatefulWidget {
 class _SplashScreenState extends State<SplashScreen>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
+  late Animation<double> _animation;
+  late Animation<Gradient?> _gradientAnimation;
 
   @override
   void initState() {
     super.initState();
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(seconds: 1),
-    )..repeat(reverse: true);
+      duration: const Duration(milliseconds: 600),
+    )..repeat();
+
+    _animation = TweenSequence<double>([
+      TweenSequenceItem<double>(
+        tween: Tween<double>(begin: 0, end: -0.08)
+            .chain(CurveTween(curve: Curves.easeInOut)),
+        weight: 20,
+      ),
+      TweenSequenceItem<double>(
+        tween: Tween<double>(begin: -0.08, end: 0)
+            .chain(CurveTween(curve: Curves.easeInOut)),
+        weight: 18,
+      ),
+    ]).animate(_controller);
+
+    _gradientAnimation = _controller.drive(GradientTween());
 
     Future.delayed(const Duration(seconds: 3), navigateToLoginPage);
   }
@@ -58,72 +75,77 @@ class _SplashScreenState extends State<SplashScreen>
   }
 
   @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              Color.fromARGB(255, 42, 188, 255),
-              Color.fromARGB(0, 255, 255, 255),
-            ],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          ),
-        ),
-        child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Stack(
-                alignment: Alignment.center,
+      body: AnimatedBuilder(
+        animation: _animation,
+        builder: (context, child) {
+          return AnimatedContainer(
+            duration: const Duration(milliseconds: 20000),
+            decoration: BoxDecoration(
+              gradient: _gradientAnimation.value,
+            ),
+            child: Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const DecoratedBox(
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      gradient: RadialGradient(
-                        colors: [
-                          Color.fromARGB(255, 253, 255, 134),
-                          Color.fromARGB(0, 255, 255, 255),
-                        ],
-                        stops: [0.0, 1.0],
+                  Expanded(
+                    child: Transform.translate(
+                      offset: Offset(
+                        0,
+                        MediaQuery.of(context).size.height * _animation.value,
                       ),
-                    ),
-                    child: SizedBox(
-                      width: 500,
-                      height: 500,
-                    ),
-                  ),
-                  ScaleTransition(
-                    scale: Tween(begin: 0.9, end: 1.1).animate(
-                      CurvedAnimation(
-                        parent: _controller,
-                        curve: Curves.easeInOut,
-                      ),
-                    ),
-                    child: SizedBox(
-                      width: 200,
-                      height: 200,
-                      child: Image.asset(
-                        'lib/images/himlogo.png',
-                        fit: BoxFit.contain,
+                      child: RotationTransition(
+                        turns: TweenSequence<double>([
+                          TweenSequenceItem<double>(
+                            tween: Tween<double>(begin: 0.0, end: -0.05),
+                            weight: 50,
+                          ),
+                          TweenSequenceItem<double>(
+                            tween: Tween<double>(begin: -0.05, end: 0.0),
+                            weight: 80,
+                          ),
+                        ]).animate(_controller),
+                        child: child,
                       ),
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 16),
-              const CircularProgressIndicator(),
-            ],
+            ),
+          );
+        },
+        child: SizedBox(
+          width: 200,
+          height: 200,
+          child: Image.asset(
+            'lib/images/himlogo.png',
+            fit: BoxFit.contain,
           ),
         ),
       ),
     );
   }
+}
 
+class GradientTween extends Animatable<Gradient?> {
   @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
+  Gradient? transform(double t) {
+    return LinearGradient(
+      colors: [
+        Color.lerp(const Color.fromARGB(255, 252, 252, 252),
+            const Color.fromARGB(255, 250, 222, 131), t)!,
+        Color.lerp(const Color.fromARGB(255, 255, 255, 255),
+            const Color.fromARGB(255, 121, 246, 255), t)!,
+      ],
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+    );
   }
 }

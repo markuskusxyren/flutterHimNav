@@ -41,6 +41,7 @@ dependencies:
   firebase_core: ^2.13.0
   cloud_firestore: ^4.7.1
   zxcvbn: ^1.0.0
+  email_otp: ^2.0.1
   
 
 dev_dependencies:

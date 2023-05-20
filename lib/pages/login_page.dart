@@ -4,6 +4,7 @@ import 'package:himi_navi_rec/components/my_textfield.dart';
 import 'package:himi_navi_rec/pages/register_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'home_page.dart';
+import 'package:email_otp/email_otp.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({Key? key}) : super(key: key);
@@ -16,6 +17,8 @@ class _LoginPageState extends State<LoginPage> {
   // text editing controllers
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
+  final otpController = TextEditingController();
+  final otpAuth = EmailOTP();
 
   void sendPasswordResetEmail(String email) async {
     try {
@@ -52,6 +55,7 @@ class _LoginPageState extends State<LoginPage> {
         email: emailController.text,
         password: passwordController.text,
       );
+
       // pop the loading circle
       // ignore: use_build_context_synchronously
       Navigator.pop(context);
@@ -60,12 +64,60 @@ class _LoginPageState extends State<LoginPage> {
           // User is verified, proceed to home page
           String? userEmail = userCredential.user!.email;
           if (userEmail != null) {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(
-                builder: (context) => HomePage(userEmail),
-              ),
+            // Send OTP
+            otpAuth.setConfig(
+              appEmail:
+                  "himlayangnavigation@gmail.com", // Replace with your app's email
+              appName:
+                  "Himlayang Pilipino Navigation App", // Replace with your app's name
+              userEmail: userEmail,
+              otpLength: 6,
+              otpType: OTPType.digitsOnly,
             );
+            if (await otpAuth.sendOTP()) {
+              // OTP sent successfully, prompt for verification
+              showDialog(
+                context: context,
+                builder: (context) {
+                  return AlertDialog(
+                    title: const Text('OTP Verification'),
+                    content: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Text('Enter the OTP:'),
+                        TextField(controller: otpController),
+                      ],
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () async {
+                          Navigator.pop(context); // close the dialog
+
+                          // Verify OTP
+                          if (await otpAuth.verifyOTP(
+                              otp: otpController.text)) {
+                            // OTP verified, proceed to home page
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => HomePage(userEmail),
+                              ),
+                            );
+                          } else {
+                            // Invalid OTP, show error message
+                            showMessage('Invalid OTP. Please try again.');
+                          }
+                        },
+                        child: const Text('Submit'),
+                      ),
+                    ],
+                  );
+                },
+              );
+            } else {
+              // OTP sending failed, show error message
+              showMessage('Failed to send OTP. Please try again later.');
+            }
           } else {
             // Handle case where email is null.
             showMessage('Email is null. Please check your account details.');
