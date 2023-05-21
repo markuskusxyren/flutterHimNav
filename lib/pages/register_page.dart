@@ -11,7 +11,7 @@ class RegisterPage extends StatefulWidget {
   const RegisterPage({Key? key}) : super(key: key);
 
   @override
-  _RegisterPageState createState() => _RegisterPageState();
+  State<RegisterPage> createState() => _RegisterPageState();
 }
 
 class _RegisterPageState extends State<RegisterPage> {
@@ -99,32 +99,33 @@ class _RegisterPageState extends State<RegisterPage> {
       emailController.clear();
       passwordController.clear();
       confirmPasswordController.clear();
-
-      showDialog(
-        context: context,
-        builder: (context) {
-          return AlertDialog(
-            title: const Text('Email needs to be verified'),
-            content: const Text(
-                'An email verification link has been sent to your email. Please verify your account to continue.'),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const LoginPage()),
-                  );
-                },
-                child: const Text('OK'),
-              ),
-            ],
-          );
-        },
-      );
+      if (mounted) {
+        showDialog(
+          context: context,
+          builder: (context) {
+            return AlertDialog(
+              title: const Text('Email needs to be verified'),
+              content: const Text(
+                  'An email verification link has been sent to your email. Please verify your account to continue.'),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.pop(context);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const LoginPage()),
+                    );
+                  },
+                  child: const Text('OK'),
+                ),
+              ],
+            );
+          },
+        );
+      }
     } on FirebaseAuthException catch (e) {
       Navigator.pop(context); // close the loading dialog
-      print(e);
       if (e.message!.contains('auth/weak-password')) {
         showMessage('The password provided is too weak.');
       } else if (e.message!.contains('auth/already-in-use')) {

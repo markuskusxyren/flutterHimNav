@@ -55,9 +55,10 @@ class _LoginPageState extends State<LoginPage> {
       // pop the loading circle
       // ignore: use_build_context_synchronously
       Navigator.pop(context);
-      if (userCredential.user != null) {
-        if (userCredential.user!.emailVerified) {
-          // User is verified, proceed to PhoneAuthPage
+
+      if (userCredential.user != null && userCredential.user!.emailVerified) {
+        // User is verified, proceed to PhoneAuthPage
+        if (mounted) {
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(
@@ -65,13 +66,12 @@ class _LoginPageState extends State<LoginPage> {
                   PhoneAuthPage(userEmail: emailController.text),
             ),
           );
-        } else {
-          // User is unverified, show error message
-          showMessage('Please verify your account before signing in.');
         }
+      } else {
+        // User is unverified or userCredential.user is null, show error message
+        showMessage('Please verify your account before signing in.');
       }
     } on FirebaseAuthException catch (e) {
-      print(e);
       Navigator.pop(context);
       // For the web, we can handle errors differently
       if (e.code == 'user-not-found') {

@@ -166,26 +166,6 @@ class _PhoneAuthPageState extends State<PhoneAuthPage> {
     );
   }
 
-  void _verifyOTP() {
-    String enteredOTP = _otpController.text;
-    String generatedOTP = TOTPGenerator(_base32Secret, _interval).generateOtp();
-
-    if (enteredOTP.isNotEmpty && enteredOTP == generatedOTP) {
-      setState(() {
-        _isCorrectOTP = true;
-      });
-      // Navigate to the homepage
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => HomePage(widget.userEmail)),
-      );
-    } else {
-      setState(() {
-        _isCorrectOTP = false;
-      });
-    }
-  }
-
   void _copyToClipboard(BuildContext context) {
     Clipboard.setData(ClipboardData(text: _base32Secret));
   }

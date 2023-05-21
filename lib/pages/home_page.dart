@@ -12,14 +12,10 @@ class HomePage extends StatefulWidget {
   const HomePage(this.userEmail, {Key? key}) : super(key: key);
 
   @override
-  _HomePageState createState() => _HomePageState(userEmail);
+  State<HomePage> createState() => _HomePageState();
 }
 
 class _HomePageState extends State<HomePage> {
-  final String userEmail;
-
-  _HomePageState(this.userEmail);
-
   final FirebaseAuth _auth = FirebaseAuth.instance;
   late StreamSubscription<User?> _authSubscription;
   late StreamSubscription<DocumentSnapshot> _verificationSubscription;
@@ -41,6 +37,15 @@ class _HomePageState extends State<HomePage> {
         });
       }
     });
+
+    _verificationSubscription = FirebaseFirestore.instance
+        .collection('userID')
+        .doc()
+        .snapshots()
+        .listen((snapshot) {
+      // Handle the snapshot data
+      // ...
+    });
   }
 
   @override
@@ -57,9 +62,7 @@ class _HomePageState extends State<HomePage> {
         MaterialPageRoute(builder: (context) => const LoginPage()),
         (route) => false,
       );
-    }).catchError((error) {
-      print("Error signing out: $error");
-    });
+    }).catchError((error) {});
   }
 
   void _onItemTapped(int index) {
@@ -72,7 +75,7 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     final List<Widget> children = [
-      DashboardPage(userEmail),
+      DashboardPage(widget.userEmail),
       const MapPage(),
       const RecordsPage(),
     ];
