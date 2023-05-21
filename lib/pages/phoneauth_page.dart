@@ -8,6 +8,7 @@ import 'package:flutter/services.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import '../components/my_button.dart';
 import 'home_page.dart';
+import 'login_page.dart';
 
 class PhoneAuthPage extends StatefulWidget {
   final String userEmail;
@@ -20,17 +21,30 @@ class PhoneAuthPage extends StatefulWidget {
 
 class _PhoneAuthPageState extends State<PhoneAuthPage> {
   late String _base32Secret;
-  late User _currentUser;
   final int _interval = 30;
   String? _otpAuthUri;
   final TextEditingController _otpController = TextEditingController();
   bool _isCorrectOTP = false;
   bool _hasOTPSecret = false;
-  bool _isOTPSubmitted = false;
+  final bool _isOTPSubmitted = false;
+  final FirebaseAuth _auth = FirebaseAuth.instance;
 
   @override
   void initState() {
     super.initState();
+
+    _auth.authStateChanges().listen((User? user) {
+      if (user == null) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const LoginPage()),
+        );
+      } else {
+        FirebaseFirestore.instance.collection('userID').doc(user.uid).update({
+          'isVerified': true,
+        });
+      }
+    });
 
     _checkExistingOTPSecret().then((hasExistingSecret) {
       if (hasExistingSecret) {
@@ -51,8 +65,6 @@ class _PhoneAuthPageState extends State<PhoneAuthPage> {
     User? user = FirebaseAuth.instance.currentUser;
 
     if (user != null) {
-      _currentUser = user;
-
       DocumentSnapshot<Map<String, dynamic>> document = await FirebaseFirestore
           .instance
           .collection('userID')
@@ -80,8 +92,6 @@ class _PhoneAuthPageState extends State<PhoneAuthPage> {
     User? user = FirebaseAuth.instance.currentUser;
 
     if (user != null) {
-      _currentUser = user;
-
       const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
       var random = Random();
 
@@ -102,7 +112,6 @@ class _PhoneAuthPageState extends State<PhoneAuthPage> {
 
   void _generateOtp() {
     if (_base32Secret.isNotEmpty) {
-      TOTPGenerator totp = TOTPGenerator(_base32Secret, _interval);
       String issuerName = 'HimNav';
       String accountName = FirebaseAuth.instance.currentUser!.email!;
 
@@ -181,6 +190,17 @@ class _PhoneAuthPageState extends State<PhoneAuthPage> {
     Clipboard.setData(ClipboardData(text: _base32Secret));
   }
 
+  String _buildMessage() {
+    if (_hasOTPSecret) {
+      return 'Please input the OTP located in your authentication app';
+    } else if (!_hasOTPSecret) {
+      return 'Please download Google Authenticator App to obtain OTP. '
+          'Scan the QR code or press the button beside the QR code to copy the key to your clipboard.';
+    } else {
+      return '';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -188,13 +208,12 @@ class _PhoneAuthPageState extends State<PhoneAuthPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 50.0),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 50.0),
               child: Text(
-                "Please download Google Authenticator App to obtain OTP. "
-                "Scan the QR code or press the button below to copy the key to your clipboard.",
+                _buildMessage(),
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 18.0),
+                style: const TextStyle(fontSize: 18.0),
               ),
             ),
             const SizedBox(height: 20.0),
@@ -229,11 +248,10 @@ class _PhoneAuthPageState extends State<PhoneAuthPage> {
                     FilteringTextInputFormatter.digitsOnly,
                   ],
                   maxLength: 6, // Limit input to 6 digits
-                  onSubmitted: (_) {
-                    setState(() {
-                      _isOTPSubmitted = true;
-                    });
-                    _verifyOTP();
+                  onChanged: (value) {
+                    if (value.length == 6) {
+                      _checkOTP();
+                    }
                   },
                   decoration: InputDecoration(
                     labelText: 'Enter OTP',

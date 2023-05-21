@@ -70,7 +70,26 @@ class _SplashScreenState extends State<SplashScreen>
   void navigateToLoginPage() {
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (context) => const LoginPage()),
+      PageRouteBuilder(
+        pageBuilder: (context, animation, secondaryAnimation) =>
+            const LoginPage(),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          var begin = const Offset(1.0, 0.0); // Slide from right
+          var end = Offset.zero; // Slide to left
+          var curve = Curves.ease;
+
+          var slideTransition =
+              Tween(begin: begin, end: end).animate(CurvedAnimation(
+            parent: animation,
+            curve: curve,
+          ));
+
+          return SlideTransition(
+            position: slideTransition,
+            child: child,
+          );
+        },
+      ),
     );
   }
 
@@ -104,12 +123,12 @@ class _SplashScreenState extends State<SplashScreen>
                       child: RotationTransition(
                         turns: TweenSequence<double>([
                           TweenSequenceItem<double>(
-                            tween: Tween<double>(begin: 0.0, end: -0.05),
-                            weight: 70,
+                            tween: Tween<double>(begin: 0.0, end: -0.065),
+                            weight: 60,
                           ),
                           TweenSequenceItem<double>(
-                            tween: Tween<double>(begin: -0.05, end: 0.0),
-                            weight: 80,
+                            tween: Tween<double>(begin: -0.065, end: 0.0),
+                            weight: 120,
                           ),
                         ]).animate(_controller),
                         child: child,
@@ -139,13 +158,13 @@ class GradientTween extends Animatable<Gradient?> {
   Gradient? transform(double t) {
     return LinearGradient(
       colors: [
-        Color.lerp(const Color.fromARGB(255, 252, 252, 252),
-            const Color.fromARGB(255, 250, 222, 131), t)!,
         Color.lerp(const Color.fromARGB(255, 255, 255, 255),
-            const Color.fromARGB(255, 121, 246, 255), t)!,
+            const Color.fromARGB(255, 255, 204, 37), t)!,
+        Color.lerp(const Color.fromARGB(255, 255, 255, 255),
+            const Color.fromARGB(255, 212, 252, 255), t)!,
       ],
-      begin: Alignment.topLeft,
-      end: Alignment.bottomRight,
+      begin: Alignment.topRight,
+      end: Alignment.bottomLeft,
     );
   }
 }

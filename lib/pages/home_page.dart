@@ -80,6 +80,7 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       backgroundColor: Colors.grey[300],
       appBar: AppBar(
+        leading: null, // Remove the leading back button
         backgroundColor: Colors.grey[900],
         actions: [
           IconButton(
