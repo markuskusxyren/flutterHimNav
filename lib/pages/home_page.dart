@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:himi_navi_rec/pages/login_page.dart';
 import 'package:himi_navi_rec/pages/dashboard_page.dart';
 import 'package:himi_navi_rec/pages/map_page.dart';
@@ -83,7 +84,9 @@ class _HomePageState extends State<HomePage> {
     return Scaffold(
       backgroundColor: Colors.grey[300],
       appBar: AppBar(
-        leading: null, // Remove the leading back button
+        leading: kIsWeb
+            ? null
+            : Container(), // Conditionally remove the leading back button
         backgroundColor: Colors.grey[900],
         actions: [
           IconButton(

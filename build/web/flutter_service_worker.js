@@ -3,14 +3,13 @@ const MANIFEST = 'flutter-app-manifest';
 const TEMP = 'flutter-temp-cache';
 const CACHE_NAME = 'flutter-app-cache';
 
-const RESOURCES = {"assets/AssetManifest.json": "4e34aac1f06229c615ba9f9ba1fecda5",
-"assets/AssetManifest.smcbin": "70467b9482f0dea3f166a54762c328d5",
+const RESOURCES = {"assets/AssetManifest.json": "4b4b021f397d8abc27fe2846c698e2cb",
+"assets/AssetManifest.smcbin": "8e5d04b07f7ba9906cc1a5b3753b8d4c",
 "assets/FontManifest.json": "dc3d03800ccca4601324923c0b1d6d57",
-"assets/fonts/MaterialIcons-Regular.otf": "a7fa54a1bab62c838d985dbe4ca57e4a",
-"assets/lib/images/apple.png": "4f658b9a7d067de5238644b78d8d09cc",
-"assets/lib/images/google.png": "ca2f7db280e9c773e341589a81c15082",
+"assets/fonts/MaterialIcons-Regular.otf": "ae7cacb26f0fe0d0f936a1122be5ff6f",
 "assets/lib/images/himlogo.png": "37d892bba340475900945379757eea6c",
-"assets/NOTICES": "d32c74f515edb5cf8b3ccf56fc1be0d8",
+"assets/lib/images/marker.png": "2acd653e93c570100911e3f6554593e0",
+"assets/NOTICES": "0cf68756d46e96621267e4715582c30b",
 "assets/packages/cupertino_icons/assets/CupertinoIcons.ttf": "57d849d738900cfd590e9adc7e208250",
 "assets/shaders/ink_sparkle.frag": "f8b80e740d33eb157090be4e995febdf",
 "canvaskit/canvaskit.js": "76f7d822f42397160c5dfc69cbc9b2de",
@@ -26,9 +25,9 @@ const RESOURCES = {"assets/AssetManifest.json": "4e34aac1f06229c615ba9f9ba1fecda
 "icons/Icon-512.png": "96e752610906ba2a93c65f8abe1645f1",
 "icons/Icon-maskable-192.png": "c457ef57daa1d16f64b27b786ec2ea3c",
 "icons/Icon-maskable-512.png": "301a7604d45b3e739efc881eb04896ea",
-"index.html": "d837518117c1371b385d86568a5cf6bc",
-"/": "d837518117c1371b385d86568a5cf6bc",
-"main.dart.js": "89219552a17fa1fb1c0d78d4d06d863f",
+"index.html": "abc60d09c24eb42737acb057fadbab19",
+"/": "abc60d09c24eb42737acb057fadbab19",
+"main.dart.js": "42504a707f09d8438cecceecb6ee7ebd",
 "manifest.json": "f918d8f455ec7a841174375bbb76b388",
 "version.json": "b6a4c22d2eb60e821e6dea9e217505b6"};
 // The application shell files that are downloaded before a service worker can

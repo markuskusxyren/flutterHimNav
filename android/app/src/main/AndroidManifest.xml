@@ -30,4 +30,11 @@
             android:name="flutterEmbedding"
             android:value="2" />
     </application>
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />\
+    <meta-data
+    android:name="com.mapbox.token"
+    android:value="pk.eyJ1Ijoia3Vza3VzeHlyZW5uIiwiYSI6ImNsaHk5aHR6ZzExaHozam13bTdxOXBsZGQifQ.qVIWiuy7SOY2eQq226IO3Q"/>
+
 </manifest>

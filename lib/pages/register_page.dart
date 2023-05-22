@@ -31,11 +31,11 @@ class _RegisterPageState extends State<RegisterPage> {
     });
   }
 
-  // Update password strength
+// Update password strength
   void _updatePasswordStrength(String password) {
     final zxcvbn = Zxcvbn();
     final strength = zxcvbn.evaluate(password).score;
-    _passwordStrengthController.add(strength as int);
+    _passwordStrengthController.add(strength!.toInt()); // change here
   }
 
   // register user method
@@ -316,61 +316,68 @@ class _RegisterPageState extends State<RegisterPage> {
                           buttonText: 'Register',
                         ),
 
-                        const SizedBox(height: 50),
+                        const SizedBox(height: 20),
 
                         // already a member? sign in now
-                        InkWell(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              PageRouteBuilder(
-                                pageBuilder:
-                                    (context, animation, secondaryAnimation) =>
-                                        const LoginPage(),
-                                transitionsBuilder: (context, animation,
-                                    secondaryAnimation, child) {
-                                  var begin = const Offset(
-                                      1.0, 0.0); // Slide from right
-                                  var end = Offset.zero; // Slide to left
-                                  var curve = Curves.ease;
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 80.0,
+                              vertical:
+                                  20.0), // Adjust the vertical padding as per your need
 
-                                  var slideTransition =
-                                      Tween(begin: begin, end: end).animate(
-                                    CurvedAnimation(
-                                      parent: animation,
-                                      curve: curve,
+                          child: InkWell(
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                PageRouteBuilder(
+                                  pageBuilder: (context, animation,
+                                          secondaryAnimation) =>
+                                      const LoginPage(),
+                                  transitionsBuilder: (context, animation,
+                                      secondaryAnimation, child) {
+                                    var begin = const Offset(
+                                        1.0, 0.0); // Slide from right
+                                    var end = Offset.zero; // Slide to left
+                                    var curve = Curves.ease;
+
+                                    var slideTransition =
+                                        Tween(begin: begin, end: end).animate(
+                                      CurvedAnimation(
+                                        parent: animation,
+                                        curve: curve,
+                                      ),
+                                    );
+
+                                    return SlideTransition(
+                                      position: slideTransition,
+                                      child: child,
+                                    );
+                                  },
+                                ),
+                              );
+                            },
+                            child: const Padding(
+                              padding: EdgeInsets.all(
+                                  15.0), // Increase this value as per your requirement
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Text(
+                                    'Already a member?',
+                                    style: TextStyle(
+                                      color: Color.fromARGB(255, 51, 51, 51),
                                     ),
-                                  );
-
-                                  return SlideTransition(
-                                    position: slideTransition,
-                                    child: child,
-                                  );
-                                },
+                                  ),
+                                  SizedBox(width: 4),
+                                  Text(
+                                    'Sign in now',
+                                    style: TextStyle(
+                                      color: Colors.blue,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
                               ),
-                            );
-                          },
-                          child: const Padding(
-                            padding: EdgeInsets.all(
-                                15.0), // Increase this value as per your requirement
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text(
-                                  'Already a member?',
-                                  style: TextStyle(
-                                    color: Color.fromARGB(255, 51, 51, 51),
-                                  ),
-                                ),
-                                SizedBox(width: 4),
-                                Text(
-                                  'Sign in now',
-                                  style: TextStyle(
-                                    color: Colors.blue,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ],
                             ),
                           ),
                         ),

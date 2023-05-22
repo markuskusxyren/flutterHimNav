@@ -28,6 +28,7 @@ class _PhoneAuthPageState extends State<PhoneAuthPage> {
   bool _hasOTPSecret = false;
   final bool _isOTPSubmitted = false;
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  Timer? _otpTimer;
 
   @override
   void initState() {
@@ -61,6 +62,19 @@ class _PhoneAuthPageState extends State<PhoneAuthPage> {
     });
   }
 
+  @override
+  void dispose() {
+    _otpController.dispose();
+    _otpTimer?.cancel(); // Cancel the timer if it's still active
+    super.dispose();
+  }
+
+  void _startOtpGeneration() {
+    _otpTimer = Timer.periodic(Duration(seconds: _interval), (Timer t) {
+      _generateOtp();
+    });
+  }
+
   Future<bool> _checkExistingOTPSecret() async {
     User? user = FirebaseAuth.instance.currentUser;
 
@@ -80,12 +94,6 @@ class _PhoneAuthPageState extends State<PhoneAuthPage> {
     }
 
     return false;
-  }
-
-  void _startOtpGeneration() {
-    Timer.periodic(Duration(seconds: _interval), (Timer t) {
-      _generateOtp();
-    });
   }
 
   Future<void> _generateAndStoreOtpSecret() async {

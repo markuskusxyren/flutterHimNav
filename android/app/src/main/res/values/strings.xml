@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools">
+
+    <string name="mapbox_access_token" translatable="false" tools:ignore="UnusedResources">pk.eyJ1Ijoia3Vza3VzeHlyZW5uIiwiYSI6ImNsaHk5aHR6ZzExaHozam13bTdxOXBsZGQifQ.qVIWiuy7SOY2eQq226IO3Q</string>
+
+    <string name="user_location_permission_explanation">This app needs location permissions to show its functionality.</string>
+
+<string name="user_location_permission_not_granted">You didn\'t grant location permissions.</string>
+
+</resources>
