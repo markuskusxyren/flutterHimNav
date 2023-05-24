@@ -14,7 +14,15 @@
       },
       "oauth_client": [
         {
-          "client_id": "749238580298-drcqk0ffsmlscjfrr05l9aibvhg2gvos.apps.googleusercontent.com",
+          "client_id": "749238580298-pm7rca2pv6qih9hkoegtadev81ukl6mt.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.himi_navi_rec",
+            "certificate_hash": "5b32c63bcd8c9a2730a52c5ba2c7a891391c27d5"
+          }
+        },
+        {
+          "client_id": "749238580298-smb5u8sp7vv6bjgmo9d4t06r05d5q8s0.apps.googleusercontent.com",
           "client_type": 3
         }
       ],
@@ -29,6 +37,13 @@
             {
               "client_id": "749238580298-drcqk0ffsmlscjfrr05l9aibvhg2gvos.apps.googleusercontent.com",
               "client_type": 3
+            },
+            {
+              "client_id": "749238580298-5di3vsn9jktikduscfakccqoo9k3j5k7.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.himiNaviRec"
+              }
             }
           ]
         }

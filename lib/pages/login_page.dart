@@ -13,9 +13,13 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  // text editing controllers
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+  }
 
   void sendPasswordResetEmail(String email) async {
     try {
@@ -53,8 +57,9 @@ class _LoginPageState extends State<LoginPage> {
         password: passwordController.text,
       );
       // pop the loading circle
-      // ignore: use_build_context_synchronously
-      Navigator.pop(context);
+      if (mounted) {
+        Navigator.pop(context);
+      }
 
       if (userCredential.user != null && userCredential.user!.emailVerified) {
         // User is verified, proceed to PhoneAuthPage
@@ -62,8 +67,11 @@ class _LoginPageState extends State<LoginPage> {
           Navigator.pushReplacement(
             context,
             MaterialPageRoute(
-              builder: (context) =>
-                  PhoneAuthPage(userEmail: emailController.text),
+              builder: (context) => PhoneAuthPage(
+                userEmail: emailController.text,
+                emailController: emailController,
+                passwordController: passwordController,
+              ),
             ),
           );
         }
@@ -73,7 +81,6 @@ class _LoginPageState extends State<LoginPage> {
       }
     } on FirebaseAuthException catch (e) {
       Navigator.pop(context);
-      // For the web, we can handle errors differently
       if (e.code == 'user-not-found') {
         showMessage('No user found for that email.');
       } else if (e.code == 'wrong-password') {
@@ -197,80 +204,79 @@ class _LoginPageState extends State<LoginPage> {
 
                       const SizedBox(height: 10),
 
-                      // forgot password?
                       Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 25.0),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            TextButton(
-                              onPressed: () async {
-                                showDialog(
-                                  context: context,
-                                  builder: (context) {
-                                    // text editing controller for email input
-                                    final emailController =
-                                        TextEditingController();
+                        padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                        child: Align(
+                          alignment: Alignment.centerRight,
+                          child: TextButton(
+                            onPressed: () async {
+                              showDialog(
+                                context: context,
+                                builder: (context) {
+                                  // text editing controller for email input
+                                  final emailController =
+                                      TextEditingController();
 
-                                    return AlertDialog(
-                                      title: const Text('Forgot Password'),
-                                      content: Column(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          const Text('Enter your email:'),
-                                          TextField(
-                                              controller: emailController),
-                                        ],
-                                      ),
-                                      actions: [
-                                        TextButton(
-                                          onPressed: () =>
-                                              Navigator.pop(context),
-                                          child: const Text('Cancel'),
-                                        ),
-                                        TextButton(
-                                          onPressed: () async {
-                                            Navigator.pop(
-                                                context); // close the dialog
-
-                                            // try to send password reset email
-                                            try {
-                                              await FirebaseAuth.instance
-                                                  .sendPasswordResetEmail(
-                                                email: emailController.text,
-                                              );
-                                              // show success message
-                                              showMessage(
-                                                  'Password reset email sent. Check your email.');
-                                            } on FirebaseAuthException catch (e) {
-                                              if (e.code == 'user-not-found') {
-                                                showMessage(
-                                                    'No user found for that email.');
-                                              } else if (e.code ==
-                                                  'invalid-email') {
-                                                showMessage(
-                                                    'The email address is not valid.');
-                                              } else {
-                                                showMessage(
-                                                    'Failed to send password reset email. Please try again.');
-                                              }
-                                            }
-                                          },
-                                          child: const Text('Submit'),
-                                        ),
+                                  return AlertDialog(
+                                    title: const Text('Forgot Password'),
+                                    content: Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        const Text('Enter your email:'),
+                                        TextField(controller: emailController),
                                       ],
-                                    );
-                                  },
-                                );
-                              },
-                              child: const Text(
-                                'Forgot Password?',
-                                style: TextStyle(
-                                  color: Color.fromARGB(255, 51, 51, 51),
-                                ),
+                                    ),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () => Navigator.pop(context),
+                                        child: const Text('Cancel'),
+                                      ),
+                                      TextButton(
+                                        onPressed: () async {
+                                          Navigator.pop(
+                                              context); // close the dialog
+
+                                          // try to send password reset email
+                                          try {
+                                            await FirebaseAuth.instance
+                                                .sendPasswordResetEmail(
+                                              email: emailController.text,
+                                            );
+                                            // show success message
+                                            showMessage(
+                                                'Password reset email sent. Check your email.');
+                                          } on FirebaseAuthException catch (e) {
+                                            if (e.code == 'user-not-found') {
+                                              showMessage(
+                                                  'No user found for that email.');
+                                            } else if (e.code ==
+                                                'invalid-email') {
+                                              showMessage(
+                                                  'The email address is not valid.');
+                                            } else {
+                                              showMessage(
+                                                  'Failed to send password reset email. Please try again.');
+                                            }
+                                          }
+                                        },
+                                        child: const Text('Submit'),
+                                      ),
+                                    ],
+                                  );
+                                },
+                              );
+                            },
+                            style: TextButton.styleFrom(
+                              foregroundColor: Colors.black,
+                            ),
+                            child: const Text(
+                              'Forgot Password?',
+                              style: TextStyle(
+                                fontSize: 16.0,
+                                color: Colors.black,
                               ),
                             ),
-                          ],
+                          ),
                         ),
                       ),
 

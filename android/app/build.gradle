@@ -26,7 +26,6 @@ apply plugin: 'kotlin-android'
 apply from: "$flutterRoot/packages/flutter_tools/gradle/flutter.gradle"
 
 android {
-    namespace "com.example.himi_navi_rec"
     compileSdkVersion flutter.compileSdkVersion
     ndkVersion flutter.ndkVersion
 
@@ -64,6 +63,8 @@ android {
             // TODO: Add your own signing config for the release build.
             // Signing with the debug keys for now, so `flutter run --release` works.
             signingConfig signingConfigs.debug
+            minifyEnabled true
+            useProguard true
         }
     }
 }
@@ -72,11 +73,20 @@ flutter {
     source '../..'
 }
 
-ext {
-    kotlin_version = '1.7.20'
-}
+
 
 dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     implementation platform("org.jetbrains.kotlin:kotlin-bom:$kotlin_version")
+
+    // Import the BoM for the Firebase platform
+    implementation platform('com.google.firebase:firebase-bom:32.0.0')
+
+    // Add the dependency for the Firebase Authentication library
+    // When using the BoM, you don't specify versions in Firebase library dependencies
+    implementation 'com.google.firebase:firebase-auth-ktx'
+
+    // Also add the dependency for the Google Play services library and specify its version
+    implementation 'com.google.android.gms:play-services-auth:20.5.0'
+
 }

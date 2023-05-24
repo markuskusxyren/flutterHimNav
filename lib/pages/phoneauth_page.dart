@@ -9,11 +9,19 @@ import 'package:qr_flutter/qr_flutter.dart';
 import '../components/my_button.dart';
 import 'home_page.dart';
 import 'login_page.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class PhoneAuthPage extends StatefulWidget {
   final String userEmail;
+  final TextEditingController emailController;
+  final TextEditingController passwordController;
 
-  const PhoneAuthPage({required this.userEmail, Key? key}) : super(key: key);
+  const PhoneAuthPage({
+    required this.userEmail,
+    required this.emailController,
+    required this.passwordController,
+    Key? key,
+  }) : super(key: key);
 
   @override
   State<PhoneAuthPage> createState() => _PhoneAuthPageState();
@@ -24,11 +32,30 @@ class _PhoneAuthPageState extends State<PhoneAuthPage> {
   final int _interval = 30;
   String? _otpAuthUri;
   final TextEditingController _otpController = TextEditingController();
+  bool? _hasOTPSecret;
   bool _isCorrectOTP = false;
-  bool _hasOTPSecret = false;
-  final bool _isOTPSubmitted = false;
   final FirebaseAuth _auth = FirebaseAuth.instance;
   Timer? _otpTimer;
+
+  void _backToLogin() async {
+    // Clear the email and password fields
+    widget.emailController.clear();
+    widget.passwordController.clear();
+
+    // Clear the saved user from SharedPreferences
+    final SharedPreferences prefs = await SharedPreferences.getInstance();
+    await prefs.remove('rememberedUserEmail');
+    await prefs.remove('rememberedUserPassword');
+
+    if (mounted) {
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => const LoginPage(),
+        ),
+      );
+    }
+  }
 
   @override
   void initState() {
@@ -48,10 +75,12 @@ class _PhoneAuthPageState extends State<PhoneAuthPage> {
     });
 
     _checkExistingOTPSecret().then((hasExistingSecret) {
+      setState(() {
+        _hasOTPSecret = hasExistingSecret;
+        _buildMessage(); // Call _buildMessage to update the message immediately
+      });
+
       if (hasExistingSecret) {
-        setState(() {
-          _hasOTPSecret = true;
-        });
         _startOtpGeneration();
       } else {
         _generateAndStoreOtpSecret().then((_) {
@@ -130,23 +159,34 @@ class _PhoneAuthPageState extends State<PhoneAuthPage> {
     }
   }
 
-  void _checkOTP() {
+  Future<void> _checkOTP() async {
     String enteredOTP = _otpController.text;
     String generatedOTP = TOTPGenerator(_base32Secret, _interval).generateOtp();
 
     if (enteredOTP.length == 6) {
+      setState(() {
+// Start the loading indicator
+      });
+
+      await Future.delayed(
+          const Duration(seconds: 2)); // Simulating OTP verification delay
+
       if (enteredOTP == generatedOTP) {
         setState(() {
           _isCorrectOTP = true;
+// Stop the loading indicator
         });
         // Navigate to the homepage
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => HomePage(widget.userEmail)),
-        );
+        if (mounted) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => HomePage(widget.userEmail)),
+          );
+        }
       } else {
         setState(() {
           _isCorrectOTP = false;
+// Stop the loading indicator
         });
         _showAlertDialog(
             'Incorrect OTP'); // Show an alert dialog for incorrect OTP
@@ -176,16 +216,38 @@ class _PhoneAuthPageState extends State<PhoneAuthPage> {
 
   void _copyToClipboard(BuildContext context) {
     Clipboard.setData(ClipboardData(text: _base32Secret));
+    _showCopiedToClipboardAlert();
+  }
+
+  void _showCopiedToClipboardAlert() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Key Copied'),
+          content: const Text('The key has been copied to the clipboard.'),
+          actions: [
+            TextButton(
+              child: const Text('OK'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
   String _buildMessage() {
-    if (_hasOTPSecret) {
+    if (_hasOTPSecret == null) {
+      return 'Checking OTP secret...';
+    } else if (_hasOTPSecret == true) {
       return 'Please input the OTP located in your authentication app';
-    } else if (!_hasOTPSecret) {
-      return 'Please download Google Authenticator App to obtain OTP. '
-          'Scan the QR code or press the button beside the QR code to copy the key to your clipboard.';
     } else {
-      return '';
+      return 'Please download Google Authenticator App to obtain OTP. '
+          'Scan the QR code or long press the QR code to copy the key to your clipboard.'
+          'Do not leave the page until you have retrieved the key.';
     }
   }
 
@@ -205,21 +267,16 @@ class _PhoneAuthPageState extends State<PhoneAuthPage> {
               ),
             ),
             const SizedBox(height: 20.0),
-            if (!_hasOTPSecret && _otpAuthUri != null)
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
+            if (_hasOTPSecret == false && _otpAuthUri != null)
+              Stack(
+                alignment: Alignment.topRight,
                 children: <Widget>[
-                  QrImageView(
-                    data: _otpAuthUri!,
-                    version: QrVersions.auto,
-                    size: 200.0,
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: IconButton(
-                      icon: const Icon(Icons.content_copy),
-                      onPressed: () => _copyToClipboard(context),
-                      tooltip: 'Copy Key to Clipboard',
+                  GestureDetector(
+                    onLongPress: () => _copyToClipboard(context),
+                    child: QrImageView(
+                      data: _otpAuthUri!,
+                      version: QrVersions.auto,
+                      size: 200.0,
                     ),
                   ),
                 ],
@@ -243,9 +300,7 @@ class _PhoneAuthPageState extends State<PhoneAuthPage> {
                   },
                   decoration: InputDecoration(
                     labelText: 'Enter OTP',
-                    errorText: _isOTPSubmitted && _isCorrectOTP
-                        ? 'Incorrect OTP'
-                        : null,
+                    errorText: _isCorrectOTP ? 'Incorrect OTP' : null,
                   ),
                 ),
               ),
@@ -254,6 +309,11 @@ class _PhoneAuthPageState extends State<PhoneAuthPage> {
             MyButton(
               onTap: _checkOTP,
               buttonText: 'Verify OTP',
+            ),
+            const SizedBox(height: 10.0),
+            MyButton(
+              onTap: _backToLogin,
+              buttonText: 'Back to Login',
             ),
           ],
         ),

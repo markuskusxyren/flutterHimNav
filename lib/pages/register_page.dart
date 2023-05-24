@@ -16,9 +16,10 @@ class RegisterPage extends StatefulWidget {
 
 class _RegisterPageState extends State<RegisterPage> {
   // text editing controllers
-  final emailController = TextEditingController();
-  final passwordController = TextEditingController();
-  final confirmPasswordController = TextEditingController();
+  late final TextEditingController emailController = TextEditingController();
+  late final TextEditingController passwordController = TextEditingController();
+  late final TextEditingController confirmPasswordController =
+      TextEditingController();
 
   // Stream controller for password strength
   final _passwordStrengthController = StreamController<int>();
@@ -99,6 +100,7 @@ class _RegisterPageState extends State<RegisterPage> {
       emailController.clear();
       passwordController.clear();
       confirmPasswordController.clear();
+
       if (mounted) {
         showDialog(
           context: context,
@@ -106,7 +108,7 @@ class _RegisterPageState extends State<RegisterPage> {
             return AlertDialog(
               title: const Text('Email needs to be verified'),
               content: const Text(
-                  'An email verification link has been sent to your email. Please verify your account to continue.'),
+                  'An email verification link has been sent to your email. Please verify your account to continue. Check your spam folder if you cannot find the email.'),
               actions: [
                 TextButton(
                   onPressed: () {
@@ -114,7 +116,8 @@ class _RegisterPageState extends State<RegisterPage> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                          builder: (context) => const LoginPage()),
+                        builder: (context) => const LoginPage(),
+                      ),
                     );
                   },
                   child: const Text('OK'),
@@ -126,15 +129,20 @@ class _RegisterPageState extends State<RegisterPage> {
       }
     } on FirebaseAuthException catch (e) {
       Navigator.pop(context); // close the loading dialog
-      if (e.message!.contains('auth/weak-password')) {
+      if (e.code == 'weak-password') {
         showMessage('The password provided is too weak.');
-      } else if (e.message!.contains('auth/already-in-use')) {
+      } else if (e.code == 'email-already-in-use') {
         showMessage('An account already exists for that email.');
-      } else if (e.message!.contains('auth/invalid-email')) {
+      } else if (e.code == 'invalid-email') {
         showMessage('The email address is not valid.');
       } else {
         showMessage('Registration failed. Please try again later.');
       }
+      passwordController.clear();
+      confirmPasswordController.clear();
+    } catch (e) {
+      Navigator.pop(context); // close the loading dialog
+      showMessage('Registration failed. Please try again later.');
       passwordController.clear();
       confirmPasswordController.clear();
     }
@@ -321,44 +329,36 @@ class _RegisterPageState extends State<RegisterPage> {
                         // already a member? sign in now
                         Padding(
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 80.0,
-                              vertical:
-                                  20.0), // Adjust the vertical padding as per your need
-
+                              horizontal: 80.0, vertical: 20.0),
                           child: InkWell(
                             onTap: () {
-                              Navigator.push(
-                                context,
+                              Navigator.of(context).push(
                                 PageRouteBuilder(
-                                  pageBuilder: (context, animation,
+                                  opaque: false,
+                                  pageBuilder: (BuildContext context, animation,
                                           secondaryAnimation) =>
                                       const LoginPage(),
                                   transitionsBuilder: (context, animation,
                                       secondaryAnimation, child) {
-                                    var begin = const Offset(
-                                        1.0, 0.0); // Slide from right
-                                    var end = Offset.zero; // Slide to left
-                                    var curve = Curves.ease;
-
-                                    var slideTransition =
-                                        Tween(begin: begin, end: end).animate(
-                                      CurvedAnimation(
-                                        parent: animation,
-                                        curve: curve,
-                                      ),
-                                    );
-
-                                    return SlideTransition(
-                                      position: slideTransition,
-                                      child: child,
+                                    return Stack(
+                                      children: [
+                                        child,
+                                        SlideTransition(
+                                          position: Tween<Offset>(
+                                            begin: Offset.zero,
+                                            end: const Offset(1, 0),
+                                          ).animate(animation),
+                                          child:
+                                              const RegisterPage(), // This is your current page widget
+                                        ),
+                                      ],
                                     );
                                   },
                                 ),
                               );
                             },
                             child: const Padding(
-                              padding: EdgeInsets.all(
-                                  15.0), // Increase this value as per your requirement
+                              padding: EdgeInsets.all(15.0),
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
