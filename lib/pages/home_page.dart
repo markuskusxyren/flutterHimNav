@@ -1,10 +1,9 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:himi_navi_rec/pages/login_page.dart';
-import 'package:himi_navi_rec/pages/dashboard_page.dart';
-import 'package:himi_navi_rec/pages/map_page.dart';
-import 'package:himi_navi_rec/pages/records_page.dart';
+import 'package:himi_navi_rec/pages/headadmin_home_page.dart';
+import 'package:himi_navi_rec/pages/headadmin_map_page.dart';
+import 'package:himi_navi_rec/pages/headadmin_records_page.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:async';
 
@@ -83,26 +82,14 @@ class _HomePageState extends State<HomePage> {
 
     return Scaffold(
       backgroundColor: Colors.grey[300],
-      appBar: AppBar(
-        leading: kIsWeb
-            ? null
-            : Container(), // Conditionally remove the leading back button
-        backgroundColor: Colors.grey[900],
-        actions: [
-          IconButton(
-            onPressed: () => signUserOut(),
-            icon: const Icon(Icons.logout),
-          ),
-        ],
-      ),
-      body: children[_currentIndex],
+      body: children.isNotEmpty ? children[_currentIndex] : Container(),
       bottomNavigationBar: BottomNavigationBar(
         onTap: _onItemTapped,
         currentIndex: _currentIndex,
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.home),
-            label: 'Dashboard',
+            label: 'Home',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.map),

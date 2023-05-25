@@ -1,5 +1,4 @@
 import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:flutter_polyline_points/flutter_polyline_points.dart';
@@ -40,8 +39,55 @@ class _NavigationScreenState extends State<NavigationScreen> {
   @override
   void initState() {
     super.initState();
-    getNavigation();
+    checkPermissions();
     addMarker();
+  }
+
+  Future<void> checkPermissions() async {
+    bool serviceEnabled;
+    PermissionStatus permissionGranted;
+
+    location.changeSettings(accuracy: loc.LocationAccuracy.high);
+    serviceEnabled = await location.serviceEnabled();
+
+    if (!serviceEnabled) {
+      serviceEnabled = await location.requestService();
+      if (!serviceEnabled) {
+        return;
+      }
+    }
+
+    permissionGranted = await location.hasPermission();
+    if (permissionGranted != PermissionStatus.granted) {
+      permissionGranted = await location.requestPermission();
+      if (permissionGranted != PermissionStatus.granted) {
+        if (mounted) {
+          showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                title: const Text('Location Permission Denied'),
+                content: const Text(
+                  'You have denied the location permission. Some features of the app may not work correctly.',
+                ),
+                actions: [
+                  TextButton(
+                    child: const Text('OK'),
+                    onPressed: () {
+                      Navigator.pop(context);
+                    },
+                  ),
+                ],
+              );
+            },
+          );
+        }
+        return;
+      }
+    }
+
+    isLocationPermissionGranted = true;
+    getNavigation();
   }
 
   @override
@@ -114,53 +160,8 @@ class _NavigationScreenState extends State<NavigationScreen> {
   }
 
   getNavigation() async {
-    bool serviceEnabled;
-    PermissionStatus permissionGranted;
     final GoogleMapController controller = await _controller.future;
     location.changeSettings(accuracy: loc.LocationAccuracy.high);
-    serviceEnabled = await location.serviceEnabled();
-
-    if (!serviceEnabled) {
-      serviceEnabled = await location.requestService();
-      if (!serviceEnabled) {
-        return;
-      }
-    }
-
-    // Modify the permission check block
-    permissionGranted = await location.hasPermission();
-    if (permissionGranted != PermissionStatus.granted) {
-      // Permission not granted, request permission
-      permissionGranted = await location.requestPermission();
-      if (permissionGranted != PermissionStatus.granted) {
-        // Permission denied, handle accordingly
-        // Display a dialog or show a message to the user
-        if (mounted) {
-          showDialog(
-            context: context,
-            builder: (BuildContext context) {
-              return AlertDialog(
-                title: const Text('Location Permission Denied'),
-                content: const Text(
-                  'You have denied the location permission. Some features of the app may not work correctly.',
-                ),
-                actions: [
-                  TextButton(
-                    child: const Text('OK'),
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
-                  ),
-                ],
-              );
-            },
-          );
-        }
-        return;
-      }
-    }
-
-    isLocationPermissionGranted = true;
 
     _currentPosition = await location.getLocation();
     curLocation = LatLng(
@@ -198,10 +199,6 @@ class _NavigationScreenState extends State<NavigationScreen> {
   }
 
   getDirections(LatLng dst) async {
-    if (!isLocationPermissionGranted) {
-      return;
-    }
-
     List<LatLng> polylineCoordinates = [];
     List<dynamic> points = [];
     PolylineResult result = await polylinePoints.getRouteBetweenCoordinates(
