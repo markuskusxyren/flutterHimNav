@@ -36,6 +36,7 @@ class _PhoneAuthPageState extends State<PhoneAuthPage> {
   bool _isCorrectOTP = false;
   final FirebaseAuth _auth = FirebaseAuth.instance;
   Timer? _otpTimer;
+  bool _isLoading = false;
 
   void _backToLogin() async {
     // Clear the email and password fields
@@ -165,7 +166,7 @@ class _PhoneAuthPageState extends State<PhoneAuthPage> {
 
     if (enteredOTP.length == 6) {
       setState(() {
-// Start the loading indicator
+        _isLoading = true; // Start the loading indicator
       });
 
       await Future.delayed(
@@ -173,8 +174,8 @@ class _PhoneAuthPageState extends State<PhoneAuthPage> {
 
       if (enteredOTP == generatedOTP) {
         setState(() {
+          _isLoading = false; // Stop the loading indicator
           _isCorrectOTP = true;
-// Stop the loading indicator
         });
         // Navigate to the homepage
         if (mounted) {
@@ -185,11 +186,17 @@ class _PhoneAuthPageState extends State<PhoneAuthPage> {
         }
       } else {
         setState(() {
+          _isLoading = false; // Stop the loading indicator
           _isCorrectOTP = false;
-// Stop the loading indicator
         });
         _showAlertDialog(
             'Incorrect OTP'); // Show an alert dialog for incorrect OTP
+      }
+    } else {
+      if (_isLoading) {
+        setState(() {
+          _isLoading = false; // Stop the loading indicator
+        });
       }
     }
   }
@@ -254,69 +261,85 @@ class _PhoneAuthPageState extends State<PhoneAuthPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 50.0),
-              child: Text(
-                _buildMessage(),
-                textAlign: TextAlign.center,
-                style: const TextStyle(fontSize: 18.0),
-              ),
-            ),
-            const SizedBox(height: 20.0),
-            if (_hasOTPSecret == false && _otpAuthUri != null)
-              Stack(
-                alignment: Alignment.topRight,
-                children: <Widget>[
-                  GestureDetector(
-                    onLongPress: () => _copyToClipboard(context),
-                    child: QrImageView(
-                      data: _otpAuthUri!,
-                      version: QrVersions.auto,
-                      size: 200.0,
-                    ),
-                  ),
-                ],
-              ),
-            const SizedBox(height: 20.0),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 50.0),
-              child: Center(
-                child: TextField(
-                  controller: _otpController,
-                  keyboardType: TextInputType.number,
-                  textAlign: TextAlign.center,
-                  inputFormatters: <TextInputFormatter>[
-                    FilteringTextInputFormatter.digitsOnly,
-                  ],
-                  maxLength: 6, // Limit input to 6 digits
-                  onChanged: (value) {
-                    if (value.length == 6) {
-                      _checkOTP();
-                    }
-                  },
-                  decoration: InputDecoration(
-                    labelText: 'Enter OTP',
-                    errorText: _isCorrectOTP ? 'Incorrect OTP' : null,
+      body: Stack(
+        children: <Widget>[
+          // Original content goes here
+          Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 50.0),
+                  child: Text(
+                    _buildMessage(),
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(fontSize: 18.0),
                   ),
                 ),
+                const SizedBox(height: 20.0),
+                if (_hasOTPSecret == false && _otpAuthUri != null)
+                  Stack(
+                    alignment: Alignment.topRight,
+                    children: <Widget>[
+                      GestureDetector(
+                        onLongPress: () => _copyToClipboard(context),
+                        child: QrImageView(
+                          data: _otpAuthUri!,
+                          version: QrVersions.auto,
+                          size: 200.0,
+                        ),
+                      ),
+                    ],
+                  ),
+                const SizedBox(height: 20.0),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 50.0),
+                  child: Center(
+                    child: TextField(
+                      controller: _otpController,
+                      keyboardType: TextInputType.number,
+                      textAlign: TextAlign.center,
+                      inputFormatters: <TextInputFormatter>[
+                        FilteringTextInputFormatter.digitsOnly,
+                      ],
+                      maxLength: 6, // Limit input to 6 digits
+                      onChanged: (value) {
+                        if (value.length == 6) {
+                          _checkOTP();
+                        }
+                      },
+                      decoration: InputDecoration(
+                        labelText: 'Enter OTP',
+                        errorText: _isCorrectOTP ? 'Incorrect OTP' : null,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 20.0),
+                MyButton(
+                  onTap: _checkOTP,
+                  buttonText: 'Verify OTP',
+                ),
+                const SizedBox(height: 10.0),
+                MyButton(
+                  onTap: _backToLogin,
+                  buttonText: 'Back to Login',
+                ),
+              ],
+            ),
+          ),
+
+          // Translucent black background + loading animation
+          if (_isLoading)
+            Container(
+              decoration: BoxDecoration(
+                color: Colors.black.withOpacity(0.5),
+              ),
+              child: const Center(
+                child: CircularProgressIndicator(),
               ),
             ),
-            const SizedBox(height: 20.0),
-            MyButton(
-              onTap: _checkOTP,
-              buttonText: 'Verify OTP',
-            ),
-            const SizedBox(height: 10.0),
-            MyButton(
-              onTap: _backToLogin,
-              buttonText: 'Back to Login',
-            ),
-          ],
-        ),
+        ],
       ),
     );
   }
