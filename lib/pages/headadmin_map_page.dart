@@ -493,94 +493,100 @@ class _MapPageState extends State<MapPage> {
     List<double> coords = [0.0, 0.0];
     String owner = '';
 
-    showDialog(
+    showModalBottomSheet(
       context: context,
+      isScrollControlled: true, // Add this property
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(20.0),
+          topRight: Radius.circular(20.0),
+        ),
+      ),
       builder: (BuildContext context) {
-        return StatefulBuilder(
-          builder: (BuildContext context, StateSetter setState) {
-            return AlertDialog(
-              title: const Text('Add Tomb'),
-              content: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    TextFormField(
-                      decoration: const InputDecoration(labelText: 'Unit ID'),
-                      onChanged: (value) {
-                        setState(() {
-                          unitID = value;
-                        });
-                      },
+        return Padding(
+          padding:
+              EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const Text(
+                    'Add Tomb',
+                    style: TextStyle(
+                      fontSize: 18.0,
+                      fontWeight: FontWeight.bold,
                     ),
-                    const SizedBox(height: 16.0),
-                    TextFormField(
-                      decoration: const InputDecoration(labelText: 'Latitude'),
-                      keyboardType: TextInputType.number,
-                      inputFormatters: [
-                        FilteringTextInputFormatter.allow(
-                            RegExp(r'^\d+\.?\d*$')),
-                      ],
-                      onChanged: (value) {
-                        setState(() {
-                          coords[0] = double.tryParse(value) ?? 0.0;
-                        });
-                      },
-                    ),
-                    const SizedBox(height: 16.0),
-                    TextFormField(
-                      decoration: const InputDecoration(labelText: 'Longitude'),
-                      keyboardType: TextInputType.number,
-                      inputFormatters: [
-                        FilteringTextInputFormatter.allow(
-                            RegExp(r'^\d+\.?\d*$')),
-                      ],
-                      onChanged: (value) {
-                        setState(() {
-                          coords[1] = double.tryParse(value) ?? 0.0;
-                        });
-                      },
-                    ),
-                    const SizedBox(height: 16.0),
-                    TextFormField(
-                      decoration: const InputDecoration(labelText: 'Owner'),
-                      onChanged: (value) {
-                        setState(() {
-                          owner = value;
-                        });
-                      },
-                    ),
-                    const SizedBox(height: 16.0),
-                  ],
-                ),
+                  ),
+                  const SizedBox(height: 16.0),
+                  TextFormField(
+                    decoration: const InputDecoration(labelText: 'Unit ID'),
+                    onChanged: (value) {
+                      setState(() {
+                        unitID = value;
+                      });
+                    },
+                  ),
+                  const SizedBox(height: 16.0),
+                  TextFormField(
+                    decoration: const InputDecoration(labelText: 'Latitude'),
+                    keyboardType: TextInputType.number,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d*$')),
+                    ],
+                    onChanged: (value) {
+                      setState(() {
+                        coords[0] = double.tryParse(value) ?? 0.0;
+                      });
+                    },
+                  ),
+                  const SizedBox(height: 16.0),
+                  TextFormField(
+                    decoration: const InputDecoration(labelText: 'Longitude'),
+                    keyboardType: TextInputType.number,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d*$')),
+                    ],
+                    onChanged: (value) {
+                      setState(() {
+                        coords[1] = double.tryParse(value) ?? 0.0;
+                      });
+                    },
+                  ),
+                  const SizedBox(height: 16.0),
+                  TextFormField(
+                    decoration: const InputDecoration(labelText: 'Owner'),
+                    onChanged: (value) {
+                      setState(() {
+                        owner = value;
+                      });
+                    },
+                  ),
+                  const SizedBox(height: 16.0),
+                  ElevatedButton(
+                    onPressed: () {
+                      // Determine availability based on the presence of owner
+                      bool isAvailable = owner.isEmpty;
+
+                      // Add the new record to Firestore
+                      final firestore = FirebaseFirestore.instance;
+                      firestore.collection('tombs').add({
+                        'unitID': unitID,
+                        'coords': coords,
+                        'isAvailable': isAvailable,
+                        'owner': owner,
+                      });
+
+                      Navigator.pop(context);
+                    },
+                    child: const Text('Add'),
+                  ),
+                ],
               ),
-              actions: [
-                TextButton(
-                  onPressed: () {
-                    // Determine availability based on the presence of owner
-                    bool isAvailable = owner.isEmpty;
-
-                    // Add the new record to Firestore
-                    final firestore = FirebaseFirestore.instance;
-                    firestore.collection('tombs').add({
-                      'unitID': unitID,
-                      'coords': coords,
-                      'isAvailable': isAvailable,
-                      'owner': owner,
-                    });
-
-                    Navigator.pop(context);
-                  },
-                  child: const Text('Add'),
-                ),
-                TextButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
-                  child: const Text('Cancel'),
-                ),
-              ],
-            );
-          },
+            ),
+          ),
         );
       },
     );

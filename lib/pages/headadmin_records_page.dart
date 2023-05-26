@@ -243,146 +243,145 @@ class _RecordsPageState extends State<RecordsPage> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(20.0),
+          topRight: Radius.circular(20.0),
+        ),
+      ),
       builder: (BuildContext context) {
-        return ClipRRect(
-          borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(16.0),
-            topRight: Radius.circular(16.0),
-          ),
-          child: SingleChildScrollView(
-            child: Container(
-              padding: EdgeInsets.only(
-                bottom: MediaQuery.of(context).viewInsets.bottom,
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    TextFormField(
-                      decoration: const InputDecoration(labelText: 'Name'),
-                      onChanged: (value) {
-                        setState(() {
-                          name = value;
-                        });
-                      },
-                    ),
-                    const SizedBox(height: 16.0),
-                    TextFormField(
-                      decoration: const InputDecoration(labelText: 'Sex'),
-                      onChanged: (value) {
-                        setState(() {
-                          sex = value;
-                        });
-                      },
-                    ),
-                    const SizedBox(height: 16.0),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Expanded(
-                          child: ElevatedButton(
-                            onPressed: () async {
-                              final DateTime? picked = await _selectDate(
-                                  context, selectedDateOfBirth);
-                              if (picked != null) {
-                                setState(() {
-                                  selectedDateOfBirth = picked;
-                                });
-                              }
-                            },
-                            child: Text(
-                              selectedDateOfBirth != null
-                                  ? _dateFormat.format(selectedDateOfBirth!)
-                                  : 'Select Date of Birth',
-                            ),
+        return Padding(
+          padding:
+              EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+          child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  TextFormField(
+                    decoration: const InputDecoration(labelText: 'Name'),
+                    onChanged: (value) {
+                      setState(() {
+                        name = value;
+                      });
+                    },
+                  ),
+                  const SizedBox(height: 16.0),
+                  TextFormField(
+                    decoration: const InputDecoration(labelText: 'Sex'),
+                    onChanged: (value) {
+                      setState(() {
+                        sex = value;
+                      });
+                    },
+                  ),
+                  const SizedBox(height: 16.0),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: () async {
+                            final DateTime? picked =
+                                await _selectDate(context, selectedDateOfBirth);
+                            if (picked != null) {
+                              setState(() {
+                                selectedDateOfBirth = picked;
+                              });
+                            }
+                          },
+                          child: Text(
+                            selectedDateOfBirth != null
+                                ? _dateFormat.format(selectedDateOfBirth!)
+                                : 'Select Date of Birth',
                           ),
                         ),
-                      ],
-                    ),
-                    const SizedBox(height: 16.0),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Expanded(
-                          child: ElevatedButton(
-                            onPressed: () async {
-                              final DateTime? picked = await _selectDate(
-                                  context, selectedDateOfDeath);
-                              if (picked != null) {
-                                setState(() {
-                                  selectedDateOfDeath = picked;
-                                });
-                              }
-                            },
-                            child: Text(
-                              selectedDateOfDeath != null
-                                  ? _dateFormat.format(selectedDateOfDeath!)
-                                  : 'Select Date of Death',
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16.0),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Expanded(
-                          child: ElevatedButton(
-                            onPressed: () async {
-                              final DateTime? picked = await _selectDate(
-                                  context, selectedGraveAvailDate);
-                              if (picked != null) {
-                                setState(() {
-                                  selectedGraveAvailDate = picked;
-                                });
-                              }
-                            },
-                            child: Text(
-                              selectedGraveAvailDate != null
-                                  ? _dateFormat.format(selectedGraveAvailDate!)
-                                  : 'Select Purchase Date',
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16.0),
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: ElevatedButton(
-                        onPressed: () {
-                          if (name.isNotEmpty &&
-                              sex.isNotEmpty &&
-                              selectedDateOfBirth != null &&
-                              selectedDateOfDeath != null &&
-                              selectedGraveAvailDate != null) {
-                            // Save the record to Firestore
-                            final firestore = FirebaseFirestore.instance;
-                            firestore.collection('deceased').add({
-                              'name': name,
-                              'sex': sex,
-                              'date_of_birth': Timestamp.fromDate(
-                                selectedDateOfBirth!,
-                              ),
-                              'date_of_death': Timestamp.fromDate(
-                                selectedDateOfDeath!,
-                              ),
-                              'grave_avail_date': Timestamp.fromDate(
-                                selectedGraveAvailDate!,
-                              ),
-                            });
-
-                            Navigator.pop(context);
-                          }
-                        },
-                        child: const Text('Add Record'),
                       ),
+                    ],
+                  ),
+                  const SizedBox(height: 16.0),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: () async {
+                            final DateTime? picked =
+                                await _selectDate(context, selectedDateOfDeath);
+                            if (picked != null) {
+                              setState(() {
+                                selectedDateOfDeath = picked;
+                              });
+                            }
+                          },
+                          child: Text(
+                            selectedDateOfDeath != null
+                                ? _dateFormat.format(selectedDateOfDeath!)
+                                : 'Select Date of Death',
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16.0),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: () async {
+                            final DateTime? picked = await _selectDate(
+                                context, selectedGraveAvailDate);
+                            if (picked != null) {
+                              setState(() {
+                                selectedGraveAvailDate = picked;
+                              });
+                            }
+                          },
+                          child: Text(
+                            selectedGraveAvailDate != null
+                                ? _dateFormat.format(selectedGraveAvailDate!)
+                                : 'Select Purchase Date',
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16.0),
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        if (name.isNotEmpty &&
+                            sex.isNotEmpty &&
+                            selectedDateOfBirth != null &&
+                            selectedDateOfDeath != null &&
+                            selectedGraveAvailDate != null) {
+                          // Save the record to Firestore
+                          final firestore = FirebaseFirestore.instance;
+                          firestore.collection('deceased').add({
+                            'name': name,
+                            'sex': sex,
+                            'date_of_birth': Timestamp.fromDate(
+                              selectedDateOfBirth!,
+                            ),
+                            'date_of_death': Timestamp.fromDate(
+                              selectedDateOfDeath!,
+                            ),
+                            'grave_avail_date': Timestamp.fromDate(
+                              selectedGraveAvailDate!,
+                            ),
+                          });
+
+                          Navigator.pop(context);
+                        }
+                      },
+                      child: const Text('Add Record'),
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
           ),
