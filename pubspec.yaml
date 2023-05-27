@@ -54,6 +54,7 @@ dependencies:
   url_launcher: ^6.1.11
   shared_preferences: ^2.0.9
   permission_handler: ^10.2.0
+  fl_chart: ^0.62.0
   
 
 

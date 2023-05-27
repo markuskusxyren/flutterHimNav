@@ -59,7 +59,7 @@ class _MapPageState extends State<MapPage> {
           };
         }).toList();
 
-        selectedUnitId = tombs.isNotEmpty ? tombs[0]['unitID'] : null;
+        selectedUnitId = tombs.isNotEmpty ? null : null;
       });
     });
   }
@@ -117,8 +117,15 @@ class _MapPageState extends State<MapPage> {
                     children: [
                       ExpansionPanel(
                         headerBuilder: (context, isExpanded) {
-                          return const ListTile(
-                            title: Text('Available Tombs'),
+                          return InkWell(
+                            onTap: () {
+                              setState(() {
+                                availablePanelExpanded = !isExpanded;
+                              });
+                            },
+                            child: const ListTile(
+                              title: Text('Available Tombs'),
+                            ),
                           );
                         },
                         body: Column(
@@ -218,8 +225,15 @@ class _MapPageState extends State<MapPage> {
                       ),
                       ExpansionPanel(
                         headerBuilder: (context, isExpanded) {
-                          return const ListTile(
-                            title: Text('Not Available Tombs'),
+                          return InkWell(
+                            onTap: () {
+                              setState(() {
+                                notAvailablePanelExpanded = !isExpanded;
+                              });
+                            },
+                            child: const ListTile(
+                              title: Text('Not Available Tombs'),
+                            ),
                           );
                         },
                         body: Column(
@@ -439,6 +453,7 @@ class _MapPageState extends State<MapPage> {
                       'owner': owner,
                     });
 
+                    Navigator.pop(context);
                     Navigator.pop(context);
                   },
                   child: const Text('Save'),

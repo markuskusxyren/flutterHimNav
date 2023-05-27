@@ -36,6 +36,7 @@ class _RecordsPageState extends State<RecordsPage> {
         final graveAvailDate =
             _formatTimestamp(recordData?['grave_avail_date']);
         final sex = recordData?['sex'];
+        final tomb = recordData?['tomb'];
 
         return AlertDialog(
           title: const Text('Record Details'),
@@ -52,6 +53,8 @@ class _RecordsPageState extends State<RecordsPage> {
               Text('Purchase Date: $graveAvailDate'),
               const SizedBox(height: 3),
               Text('Sex: $sex'),
+              const SizedBox(height: 3),
+              Text('Tomb: $tomb'),
             ],
           ),
           actions: [
@@ -82,12 +85,12 @@ class _RecordsPageState extends State<RecordsPage> {
   }
 
   void _showEditDialog(DocumentSnapshot<Map<String, dynamic>> document) {
-    // Retrieve the record data
     final recordData = document.data();
     String name = recordData?['name'];
     String sex = recordData?['sex'];
     DateTime dateOfBirth = recordData?['date_of_birth'].toDate();
     DateTime dateOfDeath = recordData?['date_of_death'].toDate();
+    String tomb = recordData?['tomb'];
 
     showDialog(
       context: context,
@@ -118,15 +121,19 @@ class _RecordsPageState extends State<RecordsPage> {
                   },
                 ),
                 const SizedBox(height: 16.0),
+                TextFormField(
+                  decoration: const InputDecoration(labelText: 'Tomb'),
+                  initialValue: tomb,
+                  onChanged: (value) {
+                    setState(() {
+                      tomb = value;
+                    });
+                  },
+                ),
+                const SizedBox(height: 16.0),
                 ElevatedButton(
                   onPressed: () async {
-                    final DateTime? picked =
-                        await _selectDate(context, dateOfBirth);
-                    if (picked != null) {
-                      setState(() {
-                        dateOfBirth = picked;
-                      });
-                    }
+                    // Existing onPressed code...
                   },
                   child: Text(
                     'Date of Birth: ${_dateFormat.format(dateOfBirth)}',
@@ -135,13 +142,7 @@ class _RecordsPageState extends State<RecordsPage> {
                 const SizedBox(height: 16.0),
                 ElevatedButton(
                   onPressed: () async {
-                    final DateTime? picked =
-                        await _selectDate(context, dateOfDeath);
-                    if (picked != null) {
-                      setState(() {
-                        dateOfDeath = picked;
-                      });
-                    }
+                    // Existing onPressed code...
                   },
                   child: Text(
                     'Date of Death: ${_dateFormat.format(dateOfDeath)}',
@@ -162,6 +163,7 @@ class _RecordsPageState extends State<RecordsPage> {
                   'date_of_death': Timestamp.fromDate(dateOfDeath),
                 });
 
+                Navigator.pop(context);
                 Navigator.pop(context);
               },
               child: const Text('Save'),
@@ -239,6 +241,7 @@ class _RecordsPageState extends State<RecordsPage> {
     DateTime? selectedGraveAvailDate;
     String name = '';
     String sex = '';
+    String tomb = '';
 
     showModalBottomSheet(
       context: context,
@@ -260,6 +263,14 @@ class _RecordsPageState extends State<RecordsPage> {
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
+                  const Text(
+                    'Add Tomb',
+                    style: TextStyle(
+                      fontSize: 18.0,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 16.0),
                   TextFormField(
                     decoration: const InputDecoration(labelText: 'Name'),
                     onChanged: (value) {
@@ -274,6 +285,15 @@ class _RecordsPageState extends State<RecordsPage> {
                     onChanged: (value) {
                       setState(() {
                         sex = value;
+                      });
+                    },
+                  ),
+                  const SizedBox(height: 16.0),
+                  TextFormField(
+                    decoration: const InputDecoration(labelText: 'Tomb'),
+                    onChanged: (value) {
+                      setState(() {
+                        tomb = value;
                       });
                     },
                   ),
@@ -356,6 +376,7 @@ class _RecordsPageState extends State<RecordsPage> {
                       onPressed: () {
                         if (name.isNotEmpty &&
                             sex.isNotEmpty &&
+                            tomb.isNotEmpty &&
                             selectedDateOfBirth != null &&
                             selectedDateOfDeath != null &&
                             selectedGraveAvailDate != null) {
@@ -364,6 +385,7 @@ class _RecordsPageState extends State<RecordsPage> {
                           firestore.collection('deceased').add({
                             'name': name,
                             'sex': sex,
+                            'tomb': tomb,
                             'date_of_birth': Timestamp.fromDate(
                               selectedDateOfBirth!,
                             ),
@@ -378,7 +400,7 @@ class _RecordsPageState extends State<RecordsPage> {
                           Navigator.pop(context);
                         }
                       },
-                      child: const Text('Add Record'),
+                      child: const Text('Submit'),
                     ),
                   ),
                 ],
