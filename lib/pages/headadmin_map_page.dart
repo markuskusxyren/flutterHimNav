@@ -7,18 +7,18 @@ final _firestore = FirebaseFirestore.instance;
 
 void main() {
   runApp(const MaterialApp(
-    home: MapPage(),
+    home: HeadMapPage(),
   ));
 }
 
-class MapPage extends StatefulWidget {
-  const MapPage({Key? key}) : super(key: key);
+class HeadMapPage extends StatefulWidget {
+  const HeadMapPage({Key? key}) : super(key: key);
 
   @override
-  State<MapPage> createState() => _MapPageState();
+  State<HeadMapPage> createState() => _HeadMapPageState();
 }
 
-class _MapPageState extends State<MapPage> {
+class _HeadMapPageState extends State<HeadMapPage> {
   List<Map<String, dynamic>> tombs = [];
   String? selectedUnitId;
   List<double>? selectedCoords;
@@ -382,7 +382,7 @@ class _MapPageState extends State<MapPage> {
         return StatefulBuilder(
           builder: (BuildContext context, StateSetter setState) {
             return AlertDialog(
-              title: const Text('Edit Record'),
+              title: const Text('Edit Tomb'),
               content: SingleChildScrollView(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,

@@ -55,6 +55,7 @@ dependencies:
   shared_preferences: ^2.0.9
   permission_handler: ^10.2.0
   fl_chart: ^0.62.0
+  flutter_map: ^4.0.0
   
 
 

@@ -2,14 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 
-class RecordsPage extends StatefulWidget {
-  const RecordsPage({Key? key}) : super(key: key);
+class HeadRecordsPage extends StatefulWidget {
+  const HeadRecordsPage({Key? key}) : super(key: key);
 
   @override
-  State<RecordsPage> createState() => _RecordsPageState();
+  State<HeadRecordsPage> createState() => _HeadRecordsPageState();
 }
 
-class _RecordsPageState extends State<RecordsPage> {
+class _HeadRecordsPageState extends State<HeadRecordsPage> {
   late Stream<QuerySnapshot<Map<String, dynamic>>> _recordsStream;
   final _dateFormat = DateFormat('MMMM dd, yyyy');
   final TextEditingController _searchController = TextEditingController();
@@ -264,7 +264,7 @@ class _RecordsPageState extends State<RecordsPage> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   const Text(
-                    'Add Tomb',
+                    'Add Record',
                     style: TextStyle(
                       fontSize: 18.0,
                       fontWeight: FontWeight.bold,

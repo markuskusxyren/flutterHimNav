@@ -7,7 +7,7 @@ import 'package:crypto/crypto.dart';
 import 'package:flutter/services.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import '../components/my_button.dart';
-import 'home_page.dart';
+import 'head_nav_page.dart';
 import 'login_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 

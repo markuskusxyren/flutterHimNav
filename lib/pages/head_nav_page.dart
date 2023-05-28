@@ -2,10 +2,11 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:himi_navi_rec/pages/login_page.dart';
 import 'package:himi_navi_rec/pages/headadmin_home_page.dart';
-import 'package:himi_navi_rec/pages/headadmin_map_page.dart';
-import 'package:himi_navi_rec/pages/headadmin_records_page.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:async';
+
+import 'headadmin_map_page.dart';
+import 'headadmin_records_page.dart';
 
 class HomePage extends StatefulWidget {
   final String userEmail;
@@ -75,9 +76,9 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     final List<Widget> children = [
-      DashboardPage(widget.userEmail),
-      const MapPage(),
-      const RecordsPage(),
+      HeadDashboardPage(widget.userEmail),
+      const HeadMapPage(),
+      const HeadRecordsPage(),
     ];
 
     return Scaffold(
