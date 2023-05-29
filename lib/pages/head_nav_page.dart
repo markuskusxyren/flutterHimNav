@@ -8,15 +8,15 @@ import 'dart:async';
 import 'headadmin_map_page.dart';
 import 'headadmin_records_page.dart';
 
-class HomePage extends StatefulWidget {
+class HeadHomePage extends StatefulWidget {
   final String userEmail;
-  const HomePage(this.userEmail, {Key? key}) : super(key: key);
+  const HeadHomePage(this.userEmail, {Key? key}) : super(key: key);
 
   @override
-  State<HomePage> createState() => _HomePageState();
+  State<HeadHomePage> createState() => _HeadHomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _HeadHomePageState extends State<HeadHomePage> {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   late StreamSubscription<User?> _authSubscription;
   late StreamSubscription<DocumentSnapshot> _verificationSubscription;

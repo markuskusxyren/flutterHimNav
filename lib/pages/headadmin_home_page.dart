@@ -192,10 +192,9 @@ class HeadDashboardPage extends StatelessWidget {
     return SafeArea(
       child: SingleChildScrollView(
         child: GridView.count(
-          physics:
-              const NeverScrollableScrollPhysics(), // Disable scrolling for the grid
+          physics: const NeverScrollableScrollPhysics(),
           shrinkWrap: true,
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(20),
           crossAxisCount:
               MediaQuery.of(context).orientation == Orientation.portrait
                   ? 2
@@ -281,9 +280,12 @@ class HeadDashboardPage extends StatelessWidget {
                   },
                 );
               },
-              child: const Card(
-                elevation: 2,
-                child: Center(
+              child: Card(
+                elevation: 5,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20.0),
+                ),
+                child: const Center(
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
@@ -291,7 +293,7 @@ class HeadDashboardPage extends StatelessWidget {
                       Text(
                         'Expired',
                         style: TextStyle(
-                          fontSize: 20,
+                          fontSize: 15,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -401,9 +403,12 @@ class HeadDashboardPage extends StatelessWidget {
                   },
                 );
               },
-              child: const Card(
-                elevation: 2,
-                child: Center(
+              child: Card(
+                elevation: 5,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20.0),
+                ),
+                child: const Center(
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
@@ -411,7 +416,7 @@ class HeadDashboardPage extends StatelessWidget {
                       Text(
                         'Tombs Chart',
                         style: TextStyle(
-                            fontSize: 20, fontWeight: FontWeight.bold),
+                            fontSize: 15, fontWeight: FontWeight.bold),
                       ),
                     ],
                   ),
@@ -431,67 +436,77 @@ class HeadDashboardPage extends StatelessWidget {
                   ),
                   builder: (BuildContext context) {
                     return SizedBox(
-                      height: MediaQuery.of(context).size.height *
-                          0.5, // Set the height to half of the screen height
+                      height: MediaQuery.of(context).size.height * 0.5,
                       child: Padding(
                         padding: const EdgeInsets.only(
                           left: 16.0,
                           right: 16.0,
                           top: 16.0,
-                          bottom: 0.0, // Set bottom padding to 0
+                          bottom: 0.0,
                         ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            const Text(
-                              'Category Chart',
-                              style: TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
+                        child: SingleChildScrollView(
+                          // Wrap the Column with SingleChildScrollView
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Text(
+                                'Category Chart',
+                                style: TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
-                            ),
-                            const SizedBox(height: 16.0),
-                            FutureBuilder<Map<String, int>>(
-                              future: getCategoryCounts(),
-                              builder: (context, snapshot) {
-                                if (snapshot.hasData) {
-                                  final categoryCounts = snapshot.data!;
-                                  final categories =
-                                      categoryCounts.keys.toList();
-                                  final counts = categoryCounts.values.toList();
+                              const SizedBox(height: 16.0),
+                              FutureBuilder<Map<String, int>>(
+                                future: getCategoryCounts(),
+                                builder: (context, snapshot) {
+                                  if (snapshot.hasData) {
+                                    final categoryCounts = snapshot.data!;
+                                    final categories =
+                                        categoryCounts.keys.toList();
+                                    final counts =
+                                        categoryCounts.values.toList();
 
-                                  return CategoryChart(
-                                    categories: categories,
-                                    counts: counts,
-                                  );
-                                } else if (snapshot.hasError) {
-                                  return Text('Error: ${snapshot.error}');
-                                } else {
-                                  return const Center(
-                                    child: CircularProgressIndicator(),
-                                  );
-                                }
-                              },
-                            ),
-                            Padding(
-                              padding: const EdgeInsets.all(16.0),
-                              child: ElevatedButton(
-                                onPressed: () {
-                                  Navigator.of(context).pop();
+                                    return CategoryChart(
+                                      categories: categories,
+                                      counts: counts,
+                                    );
+                                  } else if (snapshot.hasError) {
+                                    return Text('Error: ${snapshot.error}');
+                                  } else {
+                                    return const Center(
+                                      child: CircularProgressIndicator(),
+                                    );
+                                  }
                                 },
-                                child: const Text('Close'),
                               ),
-                            ),
-                          ],
+                              Padding(
+                                padding: const EdgeInsets.all(16.0),
+                                child: Align(
+                                  // Wrap the ElevatedButton with Align
+                                  alignment: Alignment.bottomRight,
+                                  child: ElevatedButton(
+                                    onPressed: () {
+                                      Navigator.of(context).pop();
+                                    },
+                                    child: const Text('Close'),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     );
                   },
                 );
               },
-              child: const Card(
-                elevation: 2,
-                child: Center(
+              child: Card(
+                elevation: 5,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20.0),
+                ),
+                child: const Center(
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
@@ -499,7 +514,9 @@ class HeadDashboardPage extends StatelessWidget {
                       Text(
                         'Category Chart',
                         style: TextStyle(
-                            fontSize: 20, fontWeight: FontWeight.bold),
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ],
                   ),
@@ -585,9 +602,12 @@ class HeadDashboardPage extends StatelessWidget {
                   },
                 );
               },
-              child: const Card(
-                elevation: 2,
-                child: Center(
+              child: Card(
+                elevation: 5,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20.0),
+                ),
+                child: const Center(
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
@@ -595,7 +615,7 @@ class HeadDashboardPage extends StatelessWidget {
                       Text(
                         'Unverified Emails',
                         style: TextStyle(
-                          fontSize: 20,
+                          fontSize: 15,
                           fontWeight: FontWeight.bold,
                         ),
                       ),
@@ -637,7 +657,7 @@ class HeadDashboardPage extends StatelessWidget {
                         Text(
                           userEmail,
                           style: const TextStyle(
-                            fontSize: 20,
+                            fontSize: 15,
                           ),
                         ),
                       ],
@@ -659,7 +679,9 @@ class HeadDashboardPage extends StatelessWidget {
                   ],
                 ),
               ),
-              responsiveGridDashboard(context),
+              Center(
+                child: responsiveGridDashboard(context),
+              ),
             ],
           ),
         ),

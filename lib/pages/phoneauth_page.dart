@@ -1,3 +1,5 @@
+// ignore_for_file: unused_import
+
 import 'dart:math';
 import 'dart:async';
 import 'package:flutter/material.dart';
@@ -8,6 +10,8 @@ import 'package:flutter/services.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import '../components/my_button.dart';
 import 'head_nav_page.dart';
+import 'admin_nav_page.dart';
+import 'client_nav_page.dart';
 import 'login_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -177,12 +181,34 @@ class _PhoneAuthPageState extends State<PhoneAuthPage> {
           _isLoading = false; // Stop the loading indicator
           _isCorrectOTP = true;
         });
-        // Navigate to the homepage
-        if (mounted) {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(builder: (context) => HomePage(widget.userEmail)),
-          );
+
+        String loggedInEmail =
+            widget.userEmail; // Get the logged-in user's email
+
+        if (loggedInEmail == 'HimlayangPilipinoHA@outlook.com') {
+          if (mounted) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => HeadHomePage(widget.userEmail)),
+            );
+          }
+        } else if (loggedInEmail == 'HimlayangPilipinoA@outlook.com') {
+          if (mounted) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => AdminHomePage(widget.userEmail)),
+            );
+          }
+        } else {
+          if (mounted) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                  builder: (context) => ClientHomePage(widget.userEmail)),
+            );
+          }
         }
       } else {
         setState(() {

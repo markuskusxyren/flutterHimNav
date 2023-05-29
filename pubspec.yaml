@@ -57,6 +57,8 @@ dependencies:
   fl_chart: ^0.62.0
   flutter_map: ^4.0.0
   
+  
+  
 
 
 dev_dependencies:
