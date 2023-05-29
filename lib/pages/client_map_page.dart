@@ -22,6 +22,7 @@ class _ClientMapPageState extends State<ClientMapPage> {
   List<Map<String, dynamic>> tombs = [];
   String? selectedUnitId;
   List<double>? selectedCoords;
+  String? selectedAvailedUnitId;
 
   @override
   void initState() {
@@ -234,6 +235,10 @@ class _ClientMapPageState extends State<ClientMapPage> {
                             ...availedTombs.isNotEmpty
                                 ? availedTombs.map<Widget>((tomb) {
                                     return ListTile(
+                                      tileColor: selectedAvailedUnitId ==
+                                              tomb["unitID"]
+                                          ? Colors.lightBlueAccent
+                                          : null,
                                       title: Text(tomb["unitID"]),
                                       trailing: IconButton(
                                         icon: const Icon(Icons.info),
@@ -279,7 +284,8 @@ class _ClientMapPageState extends State<ClientMapPage> {
                                       ),
                                       onTap: () {
                                         setState(() {
-                                          selectedUnitId = tomb["unitID"];
+                                          selectedAvailedUnitId =
+                                              tomb["unitID"];
                                           selectedCoords = tomb["coords"];
                                         });
                                       },
