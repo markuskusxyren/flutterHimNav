@@ -85,9 +85,18 @@ class ClientDashboardPage extends StatelessWidget {
 
     final tombDetails = availedTombs.map((tomb) {
       final tombID = tomb['tombID'] as String;
-      final matchingDeceased = deceasedSnapshot.docs.firstWhere(
-        (doc) => doc['tomb'] == tombID,
-      );
+
+      final matchingDeceased =
+          deceasedSnapshot.docs.any((doc) => doc['tomb'] == tombID)
+              ? deceasedSnapshot.docs.firstWhere((doc) => doc['tomb'] == tombID)
+              : null;
+
+      if (matchingDeceased == null) {
+        return {
+          'tombID': tombID,
+          'message': 'The tomb has no record, please contact Admin',
+        };
+      }
 
       final graveAvailDate = matchingDeceased['grave_avail_date'] as Timestamp?;
 
@@ -230,41 +239,53 @@ class ClientDashboardPage extends StatelessWidget {
                                                   const NeverScrollableScrollPhysics(),
                                               itemCount: availedTombs.length,
                                               itemBuilder: (context, index) {
-                                                final tomb = availedTombs[index]
-                                                    ['tombID'] as String;
-                                                final graveAvailDate =
-                                                    availedTombs[index]
-                                                            ['graveAvailDate']
-                                                        as Timestamp;
-                                                final expiryDate =
-                                                    availedTombs[index]
-                                                            ['expiryDate']
-                                                        as DateTime?;
-                                                final formattedPurchaseDate =
-                                                    DateFormat('yyyy-MM-dd')
-                                                        .format(graveAvailDate
-                                                            .toDate());
-                                                final formattedExpiryDate =
-                                                    expiryDate != null
-                                                        ? DateFormat(
-                                                                'yyyy-MM-dd')
-                                                            .format(expiryDate)
-                                                        : 'N/A';
+                                                final tomb =
+                                                    availedTombs[index];
+                                                if (tomb
+                                                    .containsKey('message')) {
+                                                  // If 'message' key exists, it means tombID wasn't found in 'deceased'
+                                                  final message =
+                                                      tomb['message'] as String;
+                                                  return ListTile(
+                                                    title: Text(tomb['tombID']),
+                                                    subtitle: Text(message),
+                                                  );
+                                                } else {
+                                                  final tombID =
+                                                      tomb['tombID'] as String;
+                                                  final graveAvailDate =
+                                                      tomb['graveAvailDate']
+                                                          as Timestamp;
+                                                  final expiryDate =
+                                                      tomb['expiryDate']
+                                                          as DateTime?;
+                                                  final formattedPurchaseDate =
+                                                      DateFormat('yyyy-MM-dd')
+                                                          .format(graveAvailDate
+                                                              .toDate());
+                                                  final formattedExpiryDate =
+                                                      expiryDate != null
+                                                          ? DateFormat(
+                                                                  'yyyy-MM-dd')
+                                                              .format(
+                                                                  expiryDate)
+                                                          : 'N/A';
 
-                                                return ListTile(
-                                                  title: Text(tomb),
-                                                  subtitle: Column(
-                                                    crossAxisAlignment:
-                                                        CrossAxisAlignment
-                                                            .start,
-                                                    children: [
-                                                      Text(
-                                                          'Purchase Date: $formattedPurchaseDate'),
-                                                      Text(
-                                                          'Expiry Date: $formattedExpiryDate'),
-                                                    ],
-                                                  ),
-                                                );
+                                                  return ListTile(
+                                                    title: Text(tombID),
+                                                    subtitle: Column(
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment
+                                                              .start,
+                                                      children: [
+                                                        Text(
+                                                            'Purchase Date: $formattedPurchaseDate'),
+                                                        Text(
+                                                            'Expiry Date: $formattedExpiryDate'),
+                                                      ],
+                                                    ),
+                                                  );
+                                                }
                                               },
                                             ),
                                     ),
@@ -433,7 +454,13 @@ class ClientDashboardPage extends StatelessWidget {
         } else if (snapshot.hasError) {
           return Text('Error: ${snapshot.error}');
         } else {
-          return const CircularProgressIndicator();
+          return const Center(
+            child: SizedBox(
+              width: 50,
+              height: 50,
+              child: CircularProgressIndicator(),
+            ),
+          );
         }
       },
     );

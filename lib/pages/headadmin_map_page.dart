@@ -22,6 +22,7 @@ class _HeadMapPageState extends State<HeadMapPage> {
   List<Map<String, dynamic>> tombs = [];
   String? selectedUnitId;
   List<double>? selectedCoords;
+  String dropdownValue = 'Unit ID';
 
   @override
   void initState() {
@@ -71,18 +72,27 @@ class _HeadMapPageState extends State<HeadMapPage> {
             tomb['isAvailable'] &&
             (searchAvailable == null ||
                 searchAvailable!.isEmpty ||
-                tomb['unitID']
-                    .toLowerCase()
-                    .contains(searchAvailable!.toLowerCase())))
+                (dropdownValue == 'Unit ID'
+                    ? tomb['unitID']
+                        .toLowerCase()
+                        .contains(searchAvailable!.toLowerCase())
+                    : tomb['owner']
+                        .toLowerCase()
+                        .contains(searchAvailable!.toLowerCase()))))
         .toList();
+
     List<Map<String, dynamic>> notAvailableTombs = tombs
         .where((tomb) =>
             !tomb['isAvailable'] &&
             (searchNotAvailable == null ||
                 searchNotAvailable!.isEmpty ||
-                tomb['unitID']
-                    .toLowerCase()
-                    .contains(searchNotAvailable!.toLowerCase())))
+                (dropdownValue == 'Unit ID'
+                    ? tomb['unitID']
+                        .toLowerCase()
+                        .contains(searchNotAvailable!.toLowerCase())
+                    : tomb['owner']
+                        .toLowerCase()
+                        .contains(searchNotAvailable!.toLowerCase()))))
         .toList();
 
     notAvailableTombs = notAvailableTombs.map((tomb) {
@@ -141,6 +151,28 @@ class _HeadMapPageState extends State<HeadMapPage> {
                                 prefixIcon: Icon(Icons.search),
                               ),
                             ),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                const Text('Search by:'),
+                                DropdownButton<String>(
+                                  value: dropdownValue,
+                                  onChanged: (String? newValue) {
+                                    setState(() {
+                                      dropdownValue = newValue!;
+                                    });
+                                  },
+                                  items: <String>['Unit ID', 'Owner']
+                                      .map<DropdownMenuItem<String>>(
+                                          (String value) {
+                                    return DropdownMenuItem<String>(
+                                      value: value,
+                                      child: Text(value),
+                                    );
+                                  }).toList(),
+                                ),
+                              ],
+                            ),
                             ...availableTombs.isNotEmpty
                                 ? availableTombs.map<Widget>((tomb) {
                                     return ListTile(
@@ -149,68 +181,16 @@ class _HeadMapPageState extends State<HeadMapPage> {
                                               ? Colors.lightBlueAccent
                                               : null,
                                       title: Text(tomb["unitID"]),
+                                      subtitle: Text(
+                                          'Owner: ${tomb["owner"] ?? "No Owner"}'),
                                       trailing: IconButton(
                                         icon: const Icon(Icons.info),
                                         onPressed: () {
-                                          showDialog(
-                                            context: context,
-                                            builder: (context) {
-                                              return AlertDialog(
-                                                title: const Text('Tomb Info'),
-                                                content: SingleChildScrollView(
-                                                  child: SizedBox(
-                                                    width: double.infinity,
-                                                    child: Column(
-                                                      crossAxisAlignment:
-                                                          CrossAxisAlignment
-                                                              .start,
-                                                      children: [
-                                                        Text(
-                                                            'Unit ID: ${tomb["unitID"]}'),
-                                                        Text(
-                                                            'Coordinates: ${tomb["coords"][0].toStringAsFixed(2)}... ${tomb["coords"][1].toStringAsFixed(2)}...'),
-                                                        Text(
-                                                            'Availability: ${tomb["isAvailable"]}'),
-                                                        Text(
-                                                            'Owner: ${tomb["owner"] ?? "No Owner"}'),
-                                                      ],
-                                                    ),
-                                                  ),
-                                                ),
-                                                actions: <Widget>[
-                                                  TextButton(
-                                                    onPressed: () {
-                                                      // Edit action
-                                                      _showEditDialog(tomb);
-                                                    },
-                                                    child: const Text('Edit'),
-                                                  ),
-                                                  TextButton(
-                                                    onPressed: () {
-                                                      // Delete action
-                                                      _showDeleteConfirmation(
-                                                          tomb["documentID"]);
-                                                    },
-                                                    child: const Text('Delete'),
-                                                  ),
-                                                  TextButton(
-                                                    child: const Text('Close'),
-                                                    onPressed: () {
-                                                      Navigator.of(context)
-                                                          .pop();
-                                                    },
-                                                  ),
-                                                ],
-                                              );
-                                            },
-                                          );
+                                          // Tomb details dialog
                                         },
                                       ),
                                       onTap: () {
-                                        setState(() {
-                                          selectedUnitId = tomb["unitID"];
-                                          selectedCoords = tomb["coords"];
-                                        });
+                                        // Tomb selection logic
                                       },
                                     );
                                   }).toList()
@@ -249,6 +229,28 @@ class _HeadMapPageState extends State<HeadMapPage> {
                                 prefixIcon: Icon(Icons.search),
                               ),
                             ),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                const Text('Search by:'),
+                                DropdownButton<String>(
+                                  value: dropdownValue,
+                                  onChanged: (String? newValue) {
+                                    setState(() {
+                                      dropdownValue = newValue!;
+                                    });
+                                  },
+                                  items: <String>['Unit ID', 'Owner']
+                                      .map<DropdownMenuItem<String>>(
+                                          (String value) {
+                                    return DropdownMenuItem<String>(
+                                      value: value,
+                                      child: Text(value),
+                                    );
+                                  }).toList(),
+                                ),
+                              ],
+                            ),
                             ...notAvailableTombs.isNotEmpty
                                 ? notAvailableTombs.map<Widget>((tomb) {
                                     return ListTile(
@@ -257,6 +259,8 @@ class _HeadMapPageState extends State<HeadMapPage> {
                                               ? Colors.lightBlueAccent
                                               : null,
                                       title: Text(tomb["unitID"]),
+                                      subtitle: Text(
+                                          'Owner: ${tomb["owner"] ?? "No Owner"}'),
                                       trailing: IconButton(
                                         icon: const Icon(Icons.info),
                                         onPressed: () {
@@ -336,17 +340,16 @@ class _HeadMapPageState extends State<HeadMapPage> {
                 ],
               ),
             ),
-            const SizedBox(
-              height: 20,
-            ),
+            const SizedBox(height: 20),
             SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () {
-                    _showAddDialog();
-                  },
-                  child: const Text('Add Tomb'),
-                )),
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () {
+                  _showAddDialog();
+                },
+                child: const Text('Add Tomb'),
+              ),
+            ),
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(

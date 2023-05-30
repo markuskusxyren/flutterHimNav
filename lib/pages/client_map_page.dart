@@ -23,6 +23,7 @@ class _ClientMapPageState extends State<ClientMapPage> {
   String? selectedUnitId;
   List<double>? selectedCoords;
   String? selectedAvailedUnitId;
+  String dropdownValue = 'Unit ID';
 
   @override
   void initState() {
@@ -84,9 +85,13 @@ class _ClientMapPageState extends State<ClientMapPage> {
             tomb['isAvailable'] &&
             (searchAvailable == null ||
                 searchAvailable!.isEmpty ||
-                tomb['unitID']
-                    .toLowerCase()
-                    .contains(searchAvailable!.toLowerCase())))
+                (dropdownValue == 'Unit ID'
+                    ? tomb['unitID']
+                        .toLowerCase()
+                        .contains(searchAvailable!.toLowerCase())
+                    : tomb['owner']
+                        .toLowerCase()
+                        .contains(searchAvailable!.toLowerCase()))))
         .toList();
 
     List<Map<String, dynamic>> availedTombs = tombs
@@ -109,7 +114,11 @@ class _ClientMapPageState extends State<ClientMapPage> {
                     expandedHeaderPadding: EdgeInsets.zero,
                     expansionCallback: (panelIndex, isExpanded) {
                       setState(() {
-                        availablePanelExpanded = !isExpanded;
+                        if (panelIndex == 0) {
+                          availablePanelExpanded = !isExpanded;
+                        } else {
+                          availedPanelExpanded = !isExpanded;
+                        }
                       });
                     },
                     children: [
@@ -138,6 +147,28 @@ class _ClientMapPageState extends State<ClientMapPage> {
                                 labelText: "Search",
                                 prefixIcon: Icon(Icons.search),
                               ),
+                            ),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                const Text('Search by:'),
+                                DropdownButton<String>(
+                                  value: dropdownValue,
+                                  onChanged: (String? newValue) {
+                                    setState(() {
+                                      dropdownValue = newValue!;
+                                    });
+                                  },
+                                  items: <String>['Unit ID', 'Owner']
+                                      .map<DropdownMenuItem<String>>(
+                                          (String value) {
+                                    return DropdownMenuItem<String>(
+                                      value: value,
+                                      child: Text(value),
+                                    );
+                                  }).toList(),
+                                ),
+                              ],
                             ),
                             ...availableTombs.isNotEmpty
                                 ? availableTombs.map<Widget>((tomb) {
@@ -206,17 +237,6 @@ class _ClientMapPageState extends State<ClientMapPage> {
                         ),
                         isExpanded: availablePanelExpanded,
                       ),
-                    ],
-                  ),
-                  ExpansionPanelList(
-                    elevation: 1,
-                    expandedHeaderPadding: EdgeInsets.zero,
-                    expansionCallback: (panelIndex, isExpanded) {
-                      setState(() {
-                        availedPanelExpanded = !isExpanded;
-                      });
-                    },
-                    children: [
                       ExpansionPanel(
                         headerBuilder: (context, isExpanded) {
                           return InkWell(
@@ -235,10 +255,10 @@ class _ClientMapPageState extends State<ClientMapPage> {
                             ...availedTombs.isNotEmpty
                                 ? availedTombs.map<Widget>((tomb) {
                                     return ListTile(
-                                      tileColor: selectedAvailedUnitId ==
-                                              tomb["unitID"]
-                                          ? Colors.lightBlueAccent
-                                          : null,
+                                      tileColor:
+                                          selectedUnitId == tomb["unitID"]
+                                              ? Colors.lightBlueAccent
+                                              : null,
                                       title: Text(tomb["unitID"]),
                                       trailing: IconButton(
                                         icon: const Icon(Icons.info),

@@ -13,6 +13,7 @@ class ClientRecordsPage extends StatefulWidget {
 class _ClientRecordsPageState extends State<ClientRecordsPage> {
   Stream<QuerySnapshot<Map<String, dynamic>>>? _recordsStream;
   final TextEditingController _searchController = TextEditingController();
+  String _searchFilter = 'Name';
 
   @override
   void initState() {
@@ -139,6 +140,36 @@ class _ClientRecordsPageState extends State<ClientRecordsPage> {
     );
   }
 
+  Widget _buildSearchFilterDropdown() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          const Text('Search by:'),
+          DropdownButton<String>(
+            value: _searchFilter,
+            icon: const Icon(Icons.arrow_downward),
+            iconSize: 24,
+            elevation: 16,
+            onChanged: (String? newValue) {
+              setState(() {
+                _searchFilter = newValue!;
+              });
+            },
+            items: <String>['Name', 'Tomb']
+                .map<DropdownMenuItem<String>>((String value) {
+              return DropdownMenuItem<String>(
+                value: value,
+                child: Text(value),
+              );
+            }).toList(),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -146,6 +177,7 @@ class _ClientRecordsPageState extends State<ClientRecordsPage> {
         child: Column(
           children: [
             _buildSearchBar(),
+            _buildSearchFilterDropdown(),
             Expanded(
               child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
                 stream: _recordsStream,
@@ -169,8 +201,10 @@ class _ClientRecordsPageState extends State<ClientRecordsPage> {
                         ? records
                         : records.where((record) {
                             final recordData = record.data();
-                            final name = recordData['name'];
-                            return name
+                            final searchField =
+                                _searchFilter == 'Tomb' ? 'tomb' : 'name';
+                            final fieldValue = recordData[searchField];
+                            return fieldValue
                                 .toLowerCase()
                                 .contains(_searchController.text.toLowerCase());
                           }).toList();
@@ -189,16 +223,23 @@ class _ClientRecordsPageState extends State<ClientRecordsPage> {
                         final name = recordData['name'];
                         final graveAvailDate =
                             _formatTimestamp(recordData['grave_avail_date']);
+                        final tomb = recordData['tomb'];
 
                         return Container(
-                          margin: const EdgeInsets.all(12.0),
+                          margin: const EdgeInsets.all(15.0),
                           decoration: BoxDecoration(
                             borderRadius: BorderRadius.circular(20.0),
                             color: Colors.grey[200],
                           ),
                           child: ListTile(
                             title: Text(name),
-                            subtitle: Text('Purchase Date: $graveAvailDate'),
+                            subtitle: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('Purchase Date: $graveAvailDate'),
+                                Text('Tomb: $tomb'),
+                              ],
+                            ),
                             trailing: IconButton(
                               icon: const Icon(Icons.info),
                               onPressed: () {

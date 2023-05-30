@@ -13,11 +13,13 @@ class _HeadRecordsPageState extends State<HeadRecordsPage> {
   late Stream<QuerySnapshot<Map<String, dynamic>>> _recordsStream;
   final _dateFormat = DateFormat('MMMM dd, yyyy');
   final TextEditingController _searchController = TextEditingController();
+  late String _searchFilter;
 
   @override
   void initState() {
     super.initState();
     _loadRecords();
+    _searchFilter = 'Name';
   }
 
   void _loadRecords() {
@@ -60,14 +62,12 @@ class _HeadRecordsPageState extends State<HeadRecordsPage> {
           actions: [
             TextButton(
               onPressed: () {
-                // Edit action
                 _showEditDialog(document);
               },
               child: const Text('Edit'),
             ),
             TextButton(
               onPressed: () {
-                // Delete action
                 _showDeleteConfirmation(document.id);
               },
               child: const Text('Delete'),
@@ -91,6 +91,7 @@ class _HeadRecordsPageState extends State<HeadRecordsPage> {
     DateTime dateOfBirth = recordData?['date_of_birth'].toDate();
     DateTime dateOfDeath = recordData?['date_of_death'].toDate();
     String tomb = recordData?['tomb'];
+    DateTime graveAvailDate = recordData?['grave_avail_date'].toDate();
 
     showDialog(
       context: context,
@@ -133,7 +134,13 @@ class _HeadRecordsPageState extends State<HeadRecordsPage> {
                 const SizedBox(height: 16.0),
                 ElevatedButton(
                   onPressed: () async {
-                    // Existing onPressed code...
+                    final DateTime? picked =
+                        await _selectDate(context, dateOfBirth);
+                    if (picked != null) {
+                      setState(() {
+                        dateOfBirth = picked;
+                      });
+                    }
                   },
                   child: Text(
                     'Date of Birth: ${_dateFormat.format(dateOfBirth)}',
@@ -142,10 +149,31 @@ class _HeadRecordsPageState extends State<HeadRecordsPage> {
                 const SizedBox(height: 16.0),
                 ElevatedButton(
                   onPressed: () async {
-                    // Existing onPressed code...
+                    final DateTime? picked =
+                        await _selectDate(context, dateOfDeath);
+                    if (picked != null) {
+                      setState(() {
+                        dateOfDeath = picked;
+                      });
+                    }
                   },
                   child: Text(
                     'Date of Death: ${_dateFormat.format(dateOfDeath)}',
+                  ),
+                ),
+                const SizedBox(height: 16.0),
+                ElevatedButton(
+                  onPressed: () async {
+                    final DateTime? picked =
+                        await _selectDate(context, graveAvailDate);
+                    if (picked != null) {
+                      setState(() {
+                        graveAvailDate = picked;
+                      });
+                    }
+                  },
+                  child: Text(
+                    'Purchase Date: ${_dateFormat.format(graveAvailDate)}',
                   ),
                 ),
               ],
@@ -154,13 +182,13 @@ class _HeadRecordsPageState extends State<HeadRecordsPage> {
           actions: [
             TextButton(
               onPressed: () {
-                // Save the updated record to Firestore
                 final firestore = FirebaseFirestore.instance;
                 firestore.collection('deceased').doc(document.id).update({
                   'name': name,
                   'sex': sex,
                   'date_of_birth': Timestamp.fromDate(dateOfBirth),
                   'date_of_death': Timestamp.fromDate(dateOfDeath),
+                  'grave_avail_date': Timestamp.fromDate(graveAvailDate),
                 });
 
                 Navigator.pop(context);
@@ -190,16 +218,13 @@ class _HeadRecordsPageState extends State<HeadRecordsPage> {
           actions: [
             TextButton(
               onPressed: () {
-                // Delete the record
                 _deleteRecord(documentId);
-                // Then close the dialog
                 Navigator.pop(context);
               },
               child: const Text('Delete'),
             ),
             TextButton(
               onPressed: () {
-                // Close the dialog
                 Navigator.pop(context);
               },
               child: const Text('Cancel'),
@@ -380,7 +405,6 @@ class _HeadRecordsPageState extends State<HeadRecordsPage> {
                             selectedDateOfBirth != null &&
                             selectedDateOfDeath != null &&
                             selectedGraveAvailDate != null) {
-                          // Save the record to Firestore
                           final firestore = FirebaseFirestore.instance;
                           firestore.collection('deceased').add({
                             'name': name,
@@ -436,6 +460,36 @@ class _HeadRecordsPageState extends State<HeadRecordsPage> {
     );
   }
 
+  Widget _buildSearchFilterDropdown() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          const Text('Search by:'),
+          DropdownButton<String>(
+            value: _searchFilter,
+            icon: const Icon(Icons.arrow_downward),
+            iconSize: 24,
+            elevation: 16,
+            onChanged: (String? newValue) {
+              setState(() {
+                _searchFilter = newValue!;
+              });
+            },
+            items: <String>['Name', 'Tomb']
+                .map<DropdownMenuItem<String>>((String value) {
+              return DropdownMenuItem<String>(
+                value: value,
+                child: Text(value),
+              );
+            }).toList(),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -443,6 +497,7 @@ class _HeadRecordsPageState extends State<HeadRecordsPage> {
         child: Column(
           children: [
             _buildSearchBar(),
+            _buildSearchFilterDropdown(),
             Expanded(
               child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
                 stream: _recordsStream,
@@ -468,13 +523,14 @@ class _HeadRecordsPageState extends State<HeadRecordsPage> {
                       );
                     }
 
-                    // Filter records based on search query
                     final filteredRecords = _searchController.text.isEmpty
                         ? records
                         : records.where((record) {
                             final recordData = record.data();
-                            final name = recordData['name'];
-                            return name
+                            final searchField =
+                                _searchFilter == 'Tomb' ? 'tomb' : 'name';
+                            final fieldValue = recordData[searchField];
+                            return fieldValue
                                 .toLowerCase()
                                 .contains(_searchController.text.toLowerCase());
                           }).toList();
@@ -490,22 +546,30 @@ class _HeadRecordsPageState extends State<HeadRecordsPage> {
                       itemBuilder: (context, index) {
                         final document = filteredRecords[index];
                         final recordData = document.data();
-
-                        // Adjust the field names according to your Firestore document structure
                         final name = recordData['name'];
                         final graveAvailDate =
                             _formatTimestamp(recordData['grave_avail_date']);
+                        final tomb = recordData['tomb'];
 
-                        return ListTile(
-                          title: Text(name),
-                          subtitle: Text('Purchase Date: $graveAvailDate'),
-                          trailing: IconButton(
-                            icon: const Icon(Icons.info),
-                            onPressed: () {
-                              _showDetails(document);
-                            },
+                        return Container(
+                          margin: const EdgeInsets.symmetric(
+                              vertical: 8.0), // Add vertical margin
+                          child: ListTile(
+                            title: Text(name),
+                            subtitle: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('Purchase Date: $graveAvailDate'),
+                                Text('Tomb: $tomb'),
+                              ],
+                            ),
+                            trailing: IconButton(
+                              icon: const Icon(Icons.info),
+                              onPressed: () {
+                                _showDetails(document);
+                              },
+                            ),
                           ),
-                          // Customize the list tile as per your requirement
                         );
                       },
                     );

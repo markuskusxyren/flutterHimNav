@@ -185,7 +185,7 @@ class _PhoneAuthPageState extends State<PhoneAuthPage> {
         String loggedInEmail =
             widget.userEmail; // Get the logged-in user's email
 
-        if (loggedInEmail == 'HimlayangPilipinoHA@outlook.com') {
+        if (loggedInEmail.toLowerCase() == 'himlayangpilipinoha@outlook.com') {
           if (mounted) {
             Navigator.pushReplacement(
               context,
@@ -193,7 +193,8 @@ class _PhoneAuthPageState extends State<PhoneAuthPage> {
                   builder: (context) => HeadHomePage(widget.userEmail)),
             );
           }
-        } else if (loggedInEmail == 'HimlayangPilipinoA@outlook.com') {
+        } else if (loggedInEmail.toLowerCase() ==
+            'himlayangpilipinoa@outlook.com') {
           if (mounted) {
             Navigator.pushReplacement(
               context,

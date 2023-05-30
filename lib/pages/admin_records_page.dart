@@ -13,11 +13,13 @@ class _AdminRecordsPageState extends State<AdminRecordsPage> {
   late Stream<QuerySnapshot<Map<String, dynamic>>> _recordsStream;
   final _dateFormat = DateFormat('MMMM dd, yyyy');
   final TextEditingController _searchController = TextEditingController();
+  late String _searchFilter;
 
   @override
   void initState() {
     super.initState();
     _loadRecords();
+    _searchFilter = 'Name';
   }
 
   void _loadRecords() {
@@ -60,6 +62,18 @@ class _AdminRecordsPageState extends State<AdminRecordsPage> {
           actions: [
             TextButton(
               onPressed: () {
+                _showEditDialog(document);
+              },
+              child: const Text('Edit'),
+            ),
+            TextButton(
+              onPressed: () {
+                _showDeleteConfirmation(document.id);
+              },
+              child: const Text('Delete'),
+            ),
+            TextButton(
+              onPressed: () {
                 Navigator.pop(context);
               },
               child: const Text('Close'),
@@ -68,6 +82,182 @@ class _AdminRecordsPageState extends State<AdminRecordsPage> {
         );
       },
     );
+  }
+
+  void _showEditDialog(DocumentSnapshot<Map<String, dynamic>> document) {
+    final recordData = document.data();
+    String name = recordData?['name'];
+    String sex = recordData?['sex'];
+    DateTime dateOfBirth = recordData?['date_of_birth'].toDate();
+    DateTime dateOfDeath = recordData?['date_of_death'].toDate();
+    String tomb = recordData?['tomb'];
+    DateTime graveAvailDate = recordData?['grave_avail_date'].toDate();
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Edit Record'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextFormField(
+                  decoration: const InputDecoration(labelText: 'Name'),
+                  initialValue: name,
+                  onChanged: (value) {
+                    setState(() {
+                      name = value;
+                    });
+                  },
+                ),
+                const SizedBox(height: 16.0),
+                TextFormField(
+                  decoration: const InputDecoration(labelText: 'Sex'),
+                  initialValue: sex,
+                  onChanged: (value) {
+                    setState(() {
+                      sex = value;
+                    });
+                  },
+                ),
+                const SizedBox(height: 16.0),
+                TextFormField(
+                  decoration: const InputDecoration(labelText: 'Tomb'),
+                  initialValue: tomb,
+                  onChanged: (value) {
+                    setState(() {
+                      tomb = value;
+                    });
+                  },
+                ),
+                const SizedBox(height: 16.0),
+                ElevatedButton(
+                  onPressed: () async {
+                    final DateTime? picked =
+                        await _selectDate(context, dateOfBirth);
+                    if (picked != null) {
+                      setState(() {
+                        dateOfBirth = picked;
+                      });
+                    }
+                  },
+                  child: Text(
+                    'Date of Birth: ${_dateFormat.format(dateOfBirth)}',
+                  ),
+                ),
+                const SizedBox(height: 16.0),
+                ElevatedButton(
+                  onPressed: () async {
+                    final DateTime? picked =
+                        await _selectDate(context, dateOfDeath);
+                    if (picked != null) {
+                      setState(() {
+                        dateOfDeath = picked;
+                      });
+                    }
+                  },
+                  child: Text(
+                    'Date of Death: ${_dateFormat.format(dateOfDeath)}',
+                  ),
+                ),
+                const SizedBox(height: 16.0),
+                ElevatedButton(
+                  onPressed: () async {
+                    final DateTime? picked =
+                        await _selectDate(context, graveAvailDate);
+                    if (picked != null) {
+                      setState(() {
+                        graveAvailDate = picked;
+                      });
+                    }
+                  },
+                  child: Text(
+                    'Purchase Date: ${_dateFormat.format(graveAvailDate)}',
+                  ),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                final firestore = FirebaseFirestore.instance;
+                firestore.collection('deceased').doc(document.id).update({
+                  'name': name,
+                  'sex': sex,
+                  'date_of_birth': Timestamp.fromDate(dateOfBirth),
+                  'date_of_death': Timestamp.fromDate(dateOfDeath),
+                  'grave_avail_date': Timestamp.fromDate(graveAvailDate),
+                });
+
+                Navigator.pop(context);
+                Navigator.pop(context);
+              },
+              child: const Text('Save'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: const Text('Cancel'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showDeleteConfirmation(String documentId) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Confirm Deletion'),
+          content: const Text('Are you sure you want to delete this record?'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                _deleteRecord(documentId);
+                Navigator.pop(context);
+              },
+              child: const Text('Delete'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: const Text('Cancel'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _deleteRecord(String documentId) {
+    final firestore = FirebaseFirestore.instance;
+    firestore.collection('deceased').doc(documentId).delete();
+  }
+
+  String _formatTimestamp(Timestamp? timestamp) {
+    if (timestamp == null) {
+      return 'N/A';
+    }
+    final dateTime = timestamp.toDate();
+    final formatter = DateFormat('MMMM dd, yyyy');
+    return formatter.format(dateTime);
+  }
+
+  Future<DateTime?> _selectDate(
+      BuildContext context, DateTime? initialDate) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: initialDate ?? DateTime.now(),
+      firstDate: DateTime(1900),
+      lastDate: DateTime(2100),
+    );
+    return picked;
   }
 
   void _showAddRecordDialog() {
@@ -246,26 +436,6 @@ class _AdminRecordsPageState extends State<AdminRecordsPage> {
     );
   }
 
-  String _formatTimestamp(Timestamp? timestamp) {
-    if (timestamp == null) {
-      return 'N/A';
-    }
-    final dateTime = timestamp.toDate();
-    final formatter = DateFormat('MMMM dd, yyyy');
-    return formatter.format(dateTime);
-  }
-
-  Future<DateTime?> _selectDate(
-      BuildContext context, DateTime? initialDate) async {
-    final DateTime? picked = await showDatePicker(
-      context: context,
-      initialDate: initialDate ?? DateTime.now(),
-      firstDate: DateTime(1900),
-      lastDate: DateTime(2100),
-    );
-    return picked;
-  }
-
   Widget _buildSearchBar() {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
@@ -290,6 +460,36 @@ class _AdminRecordsPageState extends State<AdminRecordsPage> {
     );
   }
 
+  Widget _buildSearchFilterDropdown() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          const Text('Search by:'),
+          DropdownButton<String>(
+            value: _searchFilter,
+            icon: const Icon(Icons.arrow_downward),
+            iconSize: 24,
+            elevation: 16,
+            onChanged: (String? newValue) {
+              setState(() {
+                _searchFilter = newValue!;
+              });
+            },
+            items: <String>['Name', 'Tomb']
+                .map<DropdownMenuItem<String>>((String value) {
+              return DropdownMenuItem<String>(
+                value: value,
+                child: Text(value),
+              );
+            }).toList(),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -297,6 +497,7 @@ class _AdminRecordsPageState extends State<AdminRecordsPage> {
         child: Column(
           children: [
             _buildSearchBar(),
+            _buildSearchFilterDropdown(),
             Expanded(
               child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
                 stream: _recordsStream,
@@ -326,8 +527,10 @@ class _AdminRecordsPageState extends State<AdminRecordsPage> {
                         ? records
                         : records.where((record) {
                             final recordData = record.data();
-                            final name = recordData['name'];
-                            return name
+                            final searchField =
+                                _searchFilter == 'Tomb' ? 'tomb' : 'name';
+                            final fieldValue = recordData[searchField];
+                            return fieldValue
                                 .toLowerCase()
                                 .contains(_searchController.text.toLowerCase());
                           }).toList();
@@ -346,15 +549,26 @@ class _AdminRecordsPageState extends State<AdminRecordsPage> {
                         final name = recordData['name'];
                         final graveAvailDate =
                             _formatTimestamp(recordData['grave_avail_date']);
+                        final tomb = recordData['tomb'];
 
-                        return ListTile(
-                          title: Text(name),
-                          subtitle: Text('Purchase Date: $graveAvailDate'),
-                          trailing: IconButton(
-                            icon: const Icon(Icons.info),
-                            onPressed: () {
-                              _showDetails(document);
-                            },
+                        return Container(
+                          margin: const EdgeInsets.symmetric(
+                              vertical: 8.0), // Add vertical margin
+                          child: ListTile(
+                            title: Text(name),
+                            subtitle: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text('Purchase Date: $graveAvailDate'),
+                                Text('Tomb: $tomb'),
+                              ],
+                            ),
+                            trailing: IconButton(
+                              icon: const Icon(Icons.info),
+                              onPressed: () {
+                                _showDetails(document);
+                              },
+                            ),
                           ),
                         );
                       },

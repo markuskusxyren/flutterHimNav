@@ -436,7 +436,7 @@ class AdminDashboardPage extends StatelessWidget {
                   ),
                   builder: (BuildContext context) {
                     return SizedBox(
-                      height: MediaQuery.of(context).size.height * 0.5,
+                      height: MediaQuery.of(context).size.height * 0.455,
                       child: Padding(
                         padding: const EdgeInsets.only(
                           left: 16.0,
@@ -480,11 +480,10 @@ class AdminDashboardPage extends StatelessWidget {
                                   }
                                 },
                               ),
-                              Padding(
-                                padding: const EdgeInsets.all(16.0),
-                                child: Align(
-                                  // Wrap the ElevatedButton with Align
-                                  alignment: Alignment.bottomRight,
+                              Align(
+                                alignment: Alignment.bottomRight,
+                                child: Padding(
+                                  padding: const EdgeInsets.all(16.0),
                                   child: ElevatedButton(
                                     onPressed: () {
                                       Navigator.of(context).pop();
