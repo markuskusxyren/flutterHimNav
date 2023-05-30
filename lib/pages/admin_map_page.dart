@@ -164,12 +164,13 @@ class _AdminMapPageState extends State<AdminMapPage> {
                                   },
                                   items: <String>['Unit ID', 'Owner']
                                       .map<DropdownMenuItem<String>>(
-                                          (String value) {
-                                    return DropdownMenuItem<String>(
-                                      value: value,
-                                      child: Text(value),
-                                    );
-                                  }).toList(),
+                                    (String value) {
+                                      return DropdownMenuItem<String>(
+                                        value: value,
+                                        child: Text(value),
+                                      );
+                                    },
+                                  ).toList(),
                                 ),
                               ],
                             ),
@@ -186,11 +187,50 @@ class _AdminMapPageState extends State<AdminMapPage> {
                                       trailing: IconButton(
                                         icon: const Icon(Icons.info),
                                         onPressed: () {
-                                          // Tomb details dialog
+                                          showDialog(
+                                            context: context,
+                                            builder: (context) {
+                                              return AlertDialog(
+                                                title: const Text('Tomb Info'),
+                                                content: SingleChildScrollView(
+                                                  child: SizedBox(
+                                                    width: double.infinity,
+                                                    child: Column(
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment
+                                                              .start,
+                                                      children: [
+                                                        Text(
+                                                            'Unit ID: ${tomb["unitID"]}'),
+                                                        Text(
+                                                            'Coordinates: ${tomb["coords"][0].toStringAsFixed(2)}... ${tomb["coords"][1].toStringAsFixed(2)}...'),
+                                                        Text(
+                                                            'Availability: ${tomb["isAvailable"]}'),
+                                                        Text(
+                                                            'Owner: ${tomb["owner"] ?? "No Owner"}'),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                ),
+                                                actions: <Widget>[
+                                                  TextButton(
+                                                    child: const Text('Close'),
+                                                    onPressed: () {
+                                                      Navigator.of(context)
+                                                          .pop();
+                                                    },
+                                                  ),
+                                                ],
+                                              );
+                                            },
+                                          );
                                         },
                                       ),
                                       onTap: () {
-                                        // Tomb selection logic
+                                        setState(() {
+                                          selectedUnitId = tomb["unitID"];
+                                          selectedCoords = tomb["coords"];
+                                        });
                                       },
                                     );
                                   }).toList()
@@ -291,21 +331,6 @@ class _AdminMapPageState extends State<AdminMapPage> {
                                                 ),
                                                 actions: <Widget>[
                                                   TextButton(
-                                                    onPressed: () {
-                                                      // Edit action
-                                                      _showEditDialog(tomb);
-                                                    },
-                                                    child: const Text('Edit'),
-                                                  ),
-                                                  TextButton(
-                                                    onPressed: () {
-                                                      // Delete action
-                                                      _showDeleteConfirmation(
-                                                          tomb["documentID"]);
-                                                    },
-                                                    child: const Text('Delete'),
-                                                  ),
-                                                  TextButton(
                                                     child: const Text('Close'),
                                                     onPressed: () {
                                                       Navigator.of(context)
@@ -370,140 +395,6 @@ class _AdminMapPageState extends State<AdminMapPage> {
         ),
       ),
     );
-  }
-
-  void _showEditDialog(Map<String, dynamic> tomb) {
-    String unitID = tomb['unitID'];
-    List<double> coords = List.from(tomb['coords']);
-    String documentID = tomb['documentID']; // Get the document ID
-    bool isAvailable = tomb['owner']?.isEmpty ?? true;
-    String owner = tomb['owner'];
-
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return StatefulBuilder(
-          builder: (BuildContext context, StateSetter setState) {
-            return AlertDialog(
-              title: const Text('Edit Tomb'),
-              content: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    TextFormField(
-                      decoration: const InputDecoration(labelText: 'Unit ID'),
-                      initialValue: unitID,
-                      onChanged: (value) {
-                        setState(() {
-                          unitID = value;
-                        });
-                      },
-                    ),
-                    const SizedBox(height: 16.0),
-                    TextFormField(
-                      decoration: const InputDecoration(labelText: 'Latitude'),
-                      initialValue: coords[0].toString(),
-                      keyboardType: TextInputType.number,
-                      inputFormatters: [
-                        FilteringTextInputFormatter.allow(
-                            RegExp(r'^\d+\.?\d*$')),
-                      ],
-                      onChanged: (value) {
-                        setState(() {
-                          coords[0] = double.tryParse(value) ?? 0.0;
-                        });
-                      },
-                    ),
-                    const SizedBox(height: 16.0),
-                    TextFormField(
-                      decoration: const InputDecoration(labelText: 'Longitude'),
-                      initialValue: coords[1].toString(),
-                      keyboardType: TextInputType.number,
-                      inputFormatters: [
-                        FilteringTextInputFormatter.allow(
-                            RegExp(r'^\d+\.?\d*$')),
-                      ],
-                      onChanged: (value) {
-                        setState(() {
-                          coords[1] = double.tryParse(value) ?? 0.0;
-                        });
-                      },
-                    ),
-                    const SizedBox(height: 16.0),
-                    TextFormField(
-                      decoration: const InputDecoration(labelText: 'Owner'),
-                      initialValue: owner,
-                      onChanged: (value) {
-                        setState(() {
-                          owner = value;
-                          isAvailable = owner.isEmpty;
-                        });
-                      },
-                    ),
-                    const SizedBox(height: 16.0),
-                  ],
-                ),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () {
-                    // Save the updated record to Firestore
-                    final firestore = FirebaseFirestore.instance;
-                    firestore.collection('tombs').doc(documentID).update({
-                      'unitID': unitID,
-                      'coords': coords,
-                      'isAvailable': isAvailable,
-                      'owner': owner,
-                    });
-
-                    Navigator.pop(context);
-                    Navigator.pop(context);
-                  },
-                  child: const Text('Save'),
-                ),
-                TextButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
-                  child: const Text('Cancel'),
-                ),
-              ],
-            );
-          },
-        );
-      },
-    );
-  }
-
-  void _showDeleteConfirmation(String documentId) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Confirm Deletion'),
-          content: const Text('Are you sure you want to delete this tomb?'),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-                _deleteRecord(documentId);
-              },
-              child: const Text('Delete'),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              child: const Text('Cancel'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  void _deleteRecord(String documentId) {
-    _firestore.collection('tombs').doc(documentId).delete();
   }
 
   void _showAddDialog() {

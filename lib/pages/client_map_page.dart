@@ -224,6 +224,7 @@ class _ClientMapPageState extends State<ClientMapPage> {
                                         setState(() {
                                           selectedUnitId = tomb["unitID"];
                                           selectedCoords = tomb["coords"];
+                                          selectedAvailedUnitId = null;
                                         });
                                       },
                                     );
@@ -255,10 +256,10 @@ class _ClientMapPageState extends State<ClientMapPage> {
                             ...availedTombs.isNotEmpty
                                 ? availedTombs.map<Widget>((tomb) {
                                     return ListTile(
-                                      tileColor:
-                                          selectedUnitId == tomb["unitID"]
-                                              ? Colors.lightBlueAccent
-                                              : null,
+                                      tileColor: selectedAvailedUnitId ==
+                                              tomb["unitID"]
+                                          ? Colors.lightBlueAccent
+                                          : null,
                                       title: Text(tomb["unitID"]),
                                       trailing: IconButton(
                                         icon: const Icon(Icons.info),
@@ -304,9 +305,10 @@ class _ClientMapPageState extends State<ClientMapPage> {
                                       ),
                                       onTap: () {
                                         setState(() {
-                                          selectedAvailedUnitId =
-                                              tomb["unitID"];
+                                          selectedUnitId = tomb["unitID"];
                                           selectedCoords = tomb["coords"];
+                                          selectedAvailedUnitId = tomb[
+                                              "unitID"]; // Set selected availed tomb
                                         });
                                       },
                                     );

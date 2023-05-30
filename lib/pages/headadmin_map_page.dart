@@ -164,12 +164,13 @@ class _HeadMapPageState extends State<HeadMapPage> {
                                   },
                                   items: <String>['Unit ID', 'Owner']
                                       .map<DropdownMenuItem<String>>(
-                                          (String value) {
-                                    return DropdownMenuItem<String>(
-                                      value: value,
-                                      child: Text(value),
-                                    );
-                                  }).toList(),
+                                    (String value) {
+                                      return DropdownMenuItem<String>(
+                                        value: value,
+                                        child: Text(value),
+                                      );
+                                    },
+                                  ).toList(),
                                 ),
                               ],
                             ),
@@ -186,11 +187,63 @@ class _HeadMapPageState extends State<HeadMapPage> {
                                       trailing: IconButton(
                                         icon: const Icon(Icons.info),
                                         onPressed: () {
-                                          // Tomb details dialog
+                                          showDialog(
+                                            context: context,
+                                            builder: (context) {
+                                              return AlertDialog(
+                                                title: const Text('Tomb Info'),
+                                                content: SingleChildScrollView(
+                                                  child: SizedBox(
+                                                    width: double.infinity,
+                                                    child: Column(
+                                                      crossAxisAlignment:
+                                                          CrossAxisAlignment
+                                                              .start,
+                                                      children: [
+                                                        Text(
+                                                            'Unit ID: ${tomb["unitID"]}'),
+                                                        Text(
+                                                            'Coordinates: ${tomb["coords"][0].toStringAsFixed(2)}... ${tomb["coords"][1].toStringAsFixed(2)}...'),
+                                                        Text(
+                                                            'Availability: ${tomb["isAvailable"]}'),
+                                                        Text(
+                                                            'Owner: ${tomb["owner"] ?? "No Owner"}'),
+                                                      ],
+                                                    ),
+                                                  ),
+                                                ),
+                                                actions: <Widget>[
+                                                  TextButton(
+                                                    onPressed: () {
+                                                      _showEditDialog(tomb);
+                                                    },
+                                                    child: const Text('Edit'),
+                                                  ),
+                                                  TextButton(
+                                                    onPressed: () {
+                                                      _showDeleteConfirmation(
+                                                          tomb["documentID"]);
+                                                    },
+                                                    child: const Text('Delete'),
+                                                  ),
+                                                  TextButton(
+                                                    child: const Text('Close'),
+                                                    onPressed: () {
+                                                      Navigator.of(context)
+                                                          .pop();
+                                                    },
+                                                  ),
+                                                ],
+                                              );
+                                            },
+                                          );
                                         },
                                       ),
                                       onTap: () {
-                                        // Tomb selection logic
+                                        setState(() {
+                                          selectedUnitId = tomb["unitID"];
+                                          selectedCoords = tomb["coords"];
+                                        });
                                       },
                                     );
                                   }).toList()
