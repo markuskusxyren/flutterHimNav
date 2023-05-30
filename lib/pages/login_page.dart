@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:himi_navi_rec/components/my_button.dart';
-import 'package:himi_navi_rec/components/my_textfield.dart';
-import 'package:himi_navi_rec/pages/register_page.dart';
+import 'package:himlayang_nav/components/my_button.dart';
+import 'package:himlayang_nav/components/my_textfield.dart';
+import 'package:himlayang_nav/pages/register_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'phoneauth_page.dart';
 

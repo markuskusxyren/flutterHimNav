@@ -1,7 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:himi_navi_rec/pages/login_page.dart';
-import 'package:himi_navi_rec/pages/admin_home_page.dart';
+import 'package:himlayang_nav/pages/login_page.dart';
+import 'package:himlayang_nav/pages/admin_home_page.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'dart:async';
 
