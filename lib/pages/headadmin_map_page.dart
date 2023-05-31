@@ -22,7 +22,7 @@ class _HeadMapPageState extends State<HeadMapPage> {
   List<Map<String, dynamic>> tombs = [];
   String? selectedUnitId;
   List<double>? selectedCoords;
-  String dropdownValue = 'Unit ID';
+  String dropdownValue = 'Tomb';
 
   @override
   void initState() {
@@ -48,15 +48,15 @@ class _HeadMapPageState extends State<HeadMapPage> {
           List<double> coords = data.containsKey('coords')
               ? List<double>.from(data['coords'])
               : [];
-          String unitID = data['unitID'] ?? '';
+          String tomb = data['tomb'] ?? '';
           bool isAvailable = data['isAvailable'] ?? false;
-          String owner = data['owner'] ?? '';
+          String ownerEmail = data['owner_email'] ?? '';
           return {
             "documentID": doc.id,
             "coords": coords,
-            "unitID": unitID,
+            "tomb": tomb,
             "isAvailable": isAvailable,
-            "owner": owner,
+            "owner_email": ownerEmail,
           };
         }).toList();
 
@@ -72,11 +72,11 @@ class _HeadMapPageState extends State<HeadMapPage> {
             tomb['isAvailable'] &&
             (searchAvailable == null ||
                 searchAvailable!.isEmpty ||
-                (dropdownValue == 'Unit ID'
-                    ? tomb['unitID']
+                (dropdownValue == 'Tomb'
+                    ? tomb['tomb']
                         .toLowerCase()
                         .contains(searchAvailable!.toLowerCase())
-                    : tomb['owner']
+                    : tomb['owner_email']
                         .toLowerCase()
                         .contains(searchAvailable!.toLowerCase()))))
         .toList();
@@ -86,18 +86,18 @@ class _HeadMapPageState extends State<HeadMapPage> {
             !tomb['isAvailable'] &&
             (searchNotAvailable == null ||
                 searchNotAvailable!.isEmpty ||
-                (dropdownValue == 'Unit ID'
-                    ? tomb['unitID']
+                (dropdownValue == 'Tomb'
+                    ? tomb['tomb']
                         .toLowerCase()
                         .contains(searchNotAvailable!.toLowerCase())
-                    : tomb['owner']
+                    : tomb['owner_email']
                         .toLowerCase()
                         .contains(searchNotAvailable!.toLowerCase()))))
         .toList();
 
     notAvailableTombs = notAvailableTombs.map((tomb) {
-      if (tomb['owner'] == null || tomb['owner'].isEmpty) {
-        tomb['owner'] = 'No Owner';
+      if (tomb['owner_email'] == null || tomb['owner_email'].isEmpty) {
+        tomb['owner_email'] = 'No Owner';
       }
       return tomb;
     }).toList();
@@ -154,7 +154,7 @@ class _HeadMapPageState extends State<HeadMapPage> {
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                const Text('Search by:'),
+                                const Text('    Search by:'),
                                 DropdownButton<String>(
                                   value: dropdownValue,
                                   onChanged: (String? newValue) {
@@ -162,7 +162,7 @@ class _HeadMapPageState extends State<HeadMapPage> {
                                       dropdownValue = newValue!;
                                     });
                                   },
-                                  items: <String>['Unit ID', 'Owner']
+                                  items: <String>['Tomb', 'Owner']
                                       .map<DropdownMenuItem<String>>(
                                     (String value) {
                                       return DropdownMenuItem<String>(
@@ -177,13 +177,12 @@ class _HeadMapPageState extends State<HeadMapPage> {
                             ...availableTombs.isNotEmpty
                                 ? availableTombs.map<Widget>((tomb) {
                                     return ListTile(
-                                      tileColor:
-                                          selectedUnitId == tomb["unitID"]
-                                              ? Colors.lightBlueAccent
-                                              : null,
-                                      title: Text(tomb["unitID"]),
+                                      tileColor: selectedUnitId == tomb["tomb"]
+                                          ? Colors.lightBlueAccent
+                                          : null,
+                                      title: Text(tomb["tomb"]),
                                       subtitle: Text(
-                                          'Owner: ${tomb["owner"] ?? "No Owner"}'),
+                                          'Owner: ${tomb["owner_email"] ?? "No Owner"}'),
                                       trailing: IconButton(
                                         icon: const Icon(Icons.info),
                                         onPressed: () {
@@ -201,13 +200,13 @@ class _HeadMapPageState extends State<HeadMapPage> {
                                                               .start,
                                                       children: [
                                                         Text(
-                                                            'Unit ID: ${tomb["unitID"]}'),
+                                                            'Tomb: ${tomb["tomb"]}'),
                                                         Text(
                                                             'Coordinates: ${tomb["coords"][0].toStringAsFixed(2)}... ${tomb["coords"][1].toStringAsFixed(2)}...'),
                                                         Text(
                                                             'Availability: ${tomb["isAvailable"]}'),
                                                         Text(
-                                                            'Owner: ${tomb["owner"] ?? "No Owner"}'),
+                                                            'Owner: ${tomb["owner_email"] ?? "No Owner"}'),
                                                       ],
                                                     ),
                                                   ),
@@ -241,7 +240,7 @@ class _HeadMapPageState extends State<HeadMapPage> {
                                       ),
                                       onTap: () {
                                         setState(() {
-                                          selectedUnitId = tomb["unitID"];
+                                          selectedUnitId = tomb["tomb"];
                                           selectedCoords = tomb["coords"];
                                         });
                                       },
@@ -285,7 +284,7 @@ class _HeadMapPageState extends State<HeadMapPage> {
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                const Text('Search by:'),
+                                const Text('    Search by:'),
                                 DropdownButton<String>(
                                   value: dropdownValue,
                                   onChanged: (String? newValue) {
@@ -293,7 +292,7 @@ class _HeadMapPageState extends State<HeadMapPage> {
                                       dropdownValue = newValue!;
                                     });
                                   },
-                                  items: <String>['Unit ID', 'Owner']
+                                  items: <String>['Tomb', 'Owner']
                                       .map<DropdownMenuItem<String>>(
                                           (String value) {
                                     return DropdownMenuItem<String>(
@@ -307,13 +306,12 @@ class _HeadMapPageState extends State<HeadMapPage> {
                             ...notAvailableTombs.isNotEmpty
                                 ? notAvailableTombs.map<Widget>((tomb) {
                                     return ListTile(
-                                      tileColor:
-                                          selectedUnitId == tomb["unitID"]
-                                              ? Colors.lightBlueAccent
-                                              : null,
-                                      title: Text(tomb["unitID"]),
+                                      tileColor: selectedUnitId == tomb["tomb"]
+                                          ? Colors.lightBlueAccent
+                                          : null,
+                                      title: Text(tomb["tomb"]),
                                       subtitle: Text(
-                                          'Owner: ${tomb["owner"] ?? "No Owner"}'),
+                                          'Owner: ${tomb["owner_email"] ?? "No Owner"}'),
                                       trailing: IconButton(
                                         icon: const Icon(Icons.info),
                                         onPressed: () {
@@ -331,13 +329,13 @@ class _HeadMapPageState extends State<HeadMapPage> {
                                                               .start,
                                                       children: [
                                                         Text(
-                                                            'Unit ID: ${tomb["unitID"]}'),
+                                                            'Tomb: ${tomb["tomb"]}'),
                                                         Text(
                                                             'Coordinates: ${tomb["coords"][0].toStringAsFixed(2)}... ${tomb["coords"][1].toStringAsFixed(2)}...'),
                                                         Text(
                                                             'Availability: ${tomb["isAvailable"]}'),
                                                         Text(
-                                                            'Owner: ${tomb["owner"] ?? "No Owner"}'),
+                                                            'Owner: ${tomb["owner_email"] ?? "No Owner"}'),
                                                       ],
                                                     ),
                                                   ),
@@ -373,7 +371,7 @@ class _HeadMapPageState extends State<HeadMapPage> {
                                       ),
                                       onTap: () {
                                         setState(() {
-                                          selectedUnitId = tomb["unitID"];
+                                          selectedUnitId = tomb["tomb"];
                                           selectedCoords = tomb["coords"];
                                         });
                                       },
@@ -426,11 +424,11 @@ class _HeadMapPageState extends State<HeadMapPage> {
   }
 
   void _showEditDialog(Map<String, dynamic> tomb) {
-    String unitID = tomb['unitID'];
+    String unitID = tomb['tomb'];
     List<double> coords = List.from(tomb['coords']);
     String documentID = tomb['documentID']; // Get the document ID
-    bool isAvailable = tomb['owner']?.isEmpty ?? true;
-    String owner = tomb['owner'];
+    bool isAvailable = tomb['owner_email']?.isEmpty ?? true;
+    String owner = tomb['owner_email'];
 
     showDialog(
       context: context,
@@ -444,7 +442,7 @@ class _HeadMapPageState extends State<HeadMapPage> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     TextFormField(
-                      decoration: const InputDecoration(labelText: 'Unit ID'),
+                      decoration: const InputDecoration(labelText: 'Tomb'),
                       initialValue: unitID,
                       onChanged: (value) {
                         setState(() {
@@ -503,10 +501,10 @@ class _HeadMapPageState extends State<HeadMapPage> {
                     // Save the updated record to Firestore
                     final firestore = FirebaseFirestore.instance;
                     firestore.collection('tombs').doc(documentID).update({
-                      'unitID': unitID,
+                      'tomb': unitID,
                       'coords': coords,
                       'isAvailable': isAvailable,
-                      'owner': owner,
+                      'owner_email': owner,
                     });
 
                     Navigator.pop(context);
@@ -593,7 +591,7 @@ class _HeadMapPageState extends State<HeadMapPage> {
                   ),
                   const SizedBox(height: 16.0),
                   TextFormField(
-                    decoration: const InputDecoration(labelText: 'Unit ID'),
+                    decoration: const InputDecoration(labelText: 'Tomb'),
                     onChanged: (value) {
                       setState(() {
                         unitID = value;
@@ -644,10 +642,10 @@ class _HeadMapPageState extends State<HeadMapPage> {
                       // Add the new record to Firestore
                       final firestore = FirebaseFirestore.instance;
                       firestore.collection('tombs').add({
-                        'unitID': unitID,
+                        'tomb': unitID,
                         'coords': coords,
                         'isAvailable': isAvailable,
-                        'owner': owner,
+                        'owner_email': owner,
                       });
 
                       Navigator.pop(context);

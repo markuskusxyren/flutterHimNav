@@ -49,15 +49,15 @@ class _ClientMapPageState extends State<ClientMapPage> {
             List<double> coords = data.containsKey('coords')
                 ? List<double>.from(data['coords'])
                 : [];
-            String unitID = data['unitID'] ?? '';
+            String tomb = data['tomb'] ?? '';
             bool isAvailable = data['isAvailable'] ?? false;
-            String owner = data['owner'] ?? '';
+            String ownerEmail = data['owner_email'] ?? '';
             return {
               "documentID": doc.id,
               "coords": coords,
-              "unitID": unitID,
+              "unitID": tomb,
               "isAvailable": isAvailable,
-              "owner": owner,
+              "owner": ownerEmail,
             };
           }).toList();
 

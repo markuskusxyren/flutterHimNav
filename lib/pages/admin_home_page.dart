@@ -58,10 +58,10 @@ class AdminDashboardPage extends StatelessWidget {
     final Map<String, int> categoryCounts = {};
 
     for (var doc in snapshot.docs) {
-      final unitID = doc['unitID'] as String?;
+      final tomb = doc['tomb'] as String?;
 
-      if (unitID != null) {
-        final category = unitID.substring(0, 2);
+      if (tomb != null) {
+        final category = tomb.substring(0, 2);
 
         if (categoryCounts.containsKey(category)) {
           categoryCounts[category] = categoryCounts[category]! + 1;
@@ -172,10 +172,10 @@ class AdminDashboardPage extends StatelessWidget {
     final Map<String, int> tombCounts = {};
 
     for (var doc in snapshot.docs) {
-      final unitID = doc['unitID'] as String?;
+      final tomb = doc['tomb'] as String?;
 
-      if (unitID != null) {
-        final category = unitID.substring(0, 2);
+      if (tomb != null) {
+        final category = tomb.substring(0, 2);
 
         if (tombCounts.containsKey(category)) {
           tombCounts[category] = tombCounts[category]! + 1;

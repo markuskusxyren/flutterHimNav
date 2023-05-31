@@ -22,7 +22,7 @@ class _AdminMapPageState extends State<AdminMapPage> {
   List<Map<String, dynamic>> tombs = [];
   String? selectedUnitId;
   List<double>? selectedCoords;
-  String dropdownValue = 'Unit ID';
+  String dropdownValue = 'Tomb';
 
   @override
   void initState() {
@@ -43,20 +43,19 @@ class _AdminMapPageState extends State<AdminMapPage> {
         .listen((QuerySnapshot querySnapshot) {
       setState(() {
         tombs = querySnapshot.docs.map((doc) {
-          Map<String, dynamic> data =
-              doc.data() as Map<String, dynamic>; // Cast to the desired type
+          Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
           List<double> coords = data.containsKey('coords')
               ? List<double>.from(data['coords'])
               : [];
-          String unitID = data['unitID'] ?? '';
+          String tomb = data['tomb'] ?? '';
           bool isAvailable = data['isAvailable'] ?? false;
-          String owner = data['owner'] ?? '';
+          String ownerEmail = data['owner_email'] ?? '';
           return {
             "documentID": doc.id,
             "coords": coords,
-            "unitID": unitID,
+            "tomb": tomb,
             "isAvailable": isAvailable,
-            "owner": owner,
+            "owner_email": ownerEmail,
           };
         }).toList();
 
@@ -72,11 +71,11 @@ class _AdminMapPageState extends State<AdminMapPage> {
             tomb['isAvailable'] &&
             (searchAvailable == null ||
                 searchAvailable!.isEmpty ||
-                (dropdownValue == 'Unit ID'
-                    ? tomb['unitID']
+                (dropdownValue == 'Tomb'
+                    ? tomb['tomb']
                         .toLowerCase()
                         .contains(searchAvailable!.toLowerCase())
-                    : tomb['owner']
+                    : tomb['owner_email']
                         .toLowerCase()
                         .contains(searchAvailable!.toLowerCase()))))
         .toList();
@@ -86,18 +85,18 @@ class _AdminMapPageState extends State<AdminMapPage> {
             !tomb['isAvailable'] &&
             (searchNotAvailable == null ||
                 searchNotAvailable!.isEmpty ||
-                (dropdownValue == 'Unit ID'
-                    ? tomb['unitID']
+                (dropdownValue == 'Tomb'
+                    ? tomb['tomb']
                         .toLowerCase()
                         .contains(searchNotAvailable!.toLowerCase())
-                    : tomb['owner']
+                    : tomb['owner_email']
                         .toLowerCase()
                         .contains(searchNotAvailable!.toLowerCase()))))
         .toList();
 
     notAvailableTombs = notAvailableTombs.map((tomb) {
-      if (tomb['owner'] == null || tomb['owner'].isEmpty) {
-        tomb['owner'] = 'No Owner';
+      if (tomb['owner_email'] == null || tomb['owner_email'].isEmpty) {
+        tomb['owner_email'] = 'No Owner';
       }
       return tomb;
     }).toList();
@@ -154,7 +153,7 @@ class _AdminMapPageState extends State<AdminMapPage> {
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                const Text('Search by:'),
+                                const Text('    Search by:'),
                                 DropdownButton<String>(
                                   value: dropdownValue,
                                   onChanged: (String? newValue) {
@@ -162,7 +161,7 @@ class _AdminMapPageState extends State<AdminMapPage> {
                                       dropdownValue = newValue!;
                                     });
                                   },
-                                  items: <String>['Unit ID', 'Owner']
+                                  items: <String>['Tomb', 'Owner']
                                       .map<DropdownMenuItem<String>>(
                                     (String value) {
                                       return DropdownMenuItem<String>(
@@ -177,13 +176,12 @@ class _AdminMapPageState extends State<AdminMapPage> {
                             ...availableTombs.isNotEmpty
                                 ? availableTombs.map<Widget>((tomb) {
                                     return ListTile(
-                                      tileColor:
-                                          selectedUnitId == tomb["unitID"]
-                                              ? Colors.lightBlueAccent
-                                              : null,
-                                      title: Text(tomb["unitID"]),
+                                      tileColor: selectedUnitId == tomb["tomb"]
+                                          ? Colors.lightBlueAccent
+                                          : null,
+                                      title: Text(tomb["tomb"]),
                                       subtitle: Text(
-                                          'Owner: ${tomb["owner"] ?? "No Owner"}'),
+                                          'Owner: ${tomb["owner_email"] ?? "No Owner"}'),
                                       trailing: IconButton(
                                         icon: const Icon(Icons.info),
                                         onPressed: () {
@@ -201,13 +199,13 @@ class _AdminMapPageState extends State<AdminMapPage> {
                                                               .start,
                                                       children: [
                                                         Text(
-                                                            'Unit ID: ${tomb["unitID"]}'),
+                                                            'Tomb: ${tomb["tomb"]}'),
                                                         Text(
                                                             'Coordinates: ${tomb["coords"][0].toStringAsFixed(2)}... ${tomb["coords"][1].toStringAsFixed(2)}...'),
                                                         Text(
                                                             'Availability: ${tomb["isAvailable"]}'),
                                                         Text(
-                                                            'Owner: ${tomb["owner"] ?? "No Owner"}'),
+                                                            'Owner: ${tomb["owner_email"] ?? "No Owner"}'),
                                                       ],
                                                     ),
                                                   ),
@@ -228,7 +226,7 @@ class _AdminMapPageState extends State<AdminMapPage> {
                                       ),
                                       onTap: () {
                                         setState(() {
-                                          selectedUnitId = tomb["unitID"];
+                                          selectedUnitId = tomb["tomb"];
                                           selectedCoords = tomb["coords"];
                                         });
                                       },
@@ -272,7 +270,7 @@ class _AdminMapPageState extends State<AdminMapPage> {
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                const Text('Search by:'),
+                                const Text('    Search by:'),
                                 DropdownButton<String>(
                                   value: dropdownValue,
                                   onChanged: (String? newValue) {
@@ -280,7 +278,7 @@ class _AdminMapPageState extends State<AdminMapPage> {
                                       dropdownValue = newValue!;
                                     });
                                   },
-                                  items: <String>['Unit ID', 'Owner']
+                                  items: <String>['Tomb', 'Owner']
                                       .map<DropdownMenuItem<String>>(
                                           (String value) {
                                     return DropdownMenuItem<String>(
@@ -294,13 +292,12 @@ class _AdminMapPageState extends State<AdminMapPage> {
                             ...notAvailableTombs.isNotEmpty
                                 ? notAvailableTombs.map<Widget>((tomb) {
                                     return ListTile(
-                                      tileColor:
-                                          selectedUnitId == tomb["unitID"]
-                                              ? Colors.lightBlueAccent
-                                              : null,
-                                      title: Text(tomb["unitID"]),
+                                      tileColor: selectedUnitId == tomb["tomb"]
+                                          ? Colors.lightBlueAccent
+                                          : null,
+                                      title: Text(tomb["tomb"]),
                                       subtitle: Text(
-                                          'Owner: ${tomb["owner"] ?? "No Owner"}'),
+                                          'Owner: ${tomb["owner_email"] ?? "No Owner"}'),
                                       trailing: IconButton(
                                         icon: const Icon(Icons.info),
                                         onPressed: () {
@@ -318,13 +315,13 @@ class _AdminMapPageState extends State<AdminMapPage> {
                                                               .start,
                                                       children: [
                                                         Text(
-                                                            'Unit ID: ${tomb["unitID"]}'),
+                                                            'Tomb: ${tomb["tomb"]}'),
                                                         Text(
                                                             'Coordinates: ${tomb["coords"][0].toStringAsFixed(2)}... ${tomb["coords"][1].toStringAsFixed(2)}...'),
                                                         Text(
                                                             'Availability: ${tomb["isAvailable"]}'),
                                                         Text(
-                                                            'Owner: ${tomb["owner"] ?? "No Owner"}'),
+                                                            'Owner: ${tomb["owner_email"] ?? "No Owner"}'),
                                                       ],
                                                     ),
                                                   ),
@@ -345,7 +342,7 @@ class _AdminMapPageState extends State<AdminMapPage> {
                                       ),
                                       onTap: () {
                                         setState(() {
-                                          selectedUnitId = tomb["unitID"];
+                                          selectedUnitId = tomb["tomb"];
                                           selectedCoords = tomb["coords"];
                                         });
                                       },
@@ -398,9 +395,9 @@ class _AdminMapPageState extends State<AdminMapPage> {
   }
 
   void _showAddDialog() {
-    String unitID = '';
+    String tomb = '';
     List<double> coords = [0.0, 0.0];
-    String owner = '';
+    String ownerEmail = '';
 
     showModalBottomSheet(
       context: context,
@@ -431,10 +428,10 @@ class _AdminMapPageState extends State<AdminMapPage> {
                   ),
                   const SizedBox(height: 16.0),
                   TextFormField(
-                    decoration: const InputDecoration(labelText: 'Unit ID'),
+                    decoration: const InputDecoration(labelText: 'Tomb'),
                     onChanged: (value) {
                       setState(() {
-                        unitID = value;
+                        tomb = value;
                       });
                     },
                   ),
@@ -469,7 +466,7 @@ class _AdminMapPageState extends State<AdminMapPage> {
                     decoration: const InputDecoration(labelText: 'Owner'),
                     onChanged: (value) {
                       setState(() {
-                        owner = value;
+                        ownerEmail = value;
                       });
                     },
                   ),
@@ -477,15 +474,15 @@ class _AdminMapPageState extends State<AdminMapPage> {
                   ElevatedButton(
                     onPressed: () {
                       // Determine availability based on the presence of owner
-                      bool isAvailable = owner.isEmpty;
+                      bool isAvailable = ownerEmail.isEmpty;
 
                       // Add the new record to Firestore
                       final firestore = FirebaseFirestore.instance;
                       firestore.collection('tombs').add({
-                        'unitID': unitID,
+                        'tomb': tomb,
                         'coords': coords,
                         'isAvailable': isAvailable,
-                        'owner': owner,
+                        'owner_email': ownerEmail,
                       });
 
                       Navigator.pop(context);

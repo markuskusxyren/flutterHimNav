@@ -43,7 +43,7 @@ class _ClientRecordsPageState extends State<ClientRecordsPage> {
         firestore.collection('deceased');
 
     final tombQuery =
-        tombsCollection.where('owner', isEqualTo: currentUserEmail);
+        tombsCollection.where('owner_email', isEqualTo: currentUserEmail);
     final tombsSnapshot = await tombQuery.get();
 
     if (tombsSnapshot.docs.isEmpty) {
@@ -51,7 +51,7 @@ class _ClientRecordsPageState extends State<ClientRecordsPage> {
     }
 
     final tombIds =
-        tombsSnapshot.docs.map((doc) => doc.data()['unitID']).toList();
+        tombsSnapshot.docs.map((doc) => doc.data()['tomb']).toList();
 
     if (tombIds.isEmpty) {
       return const Stream.empty();

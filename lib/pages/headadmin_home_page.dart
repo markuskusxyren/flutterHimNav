@@ -58,7 +58,7 @@ class HeadDashboardPage extends StatelessWidget {
     final Map<String, int> categoryCounts = {};
 
     for (var doc in snapshot.docs) {
-      final unitID = doc['unitID'] as String?;
+      final unitID = doc['tomb'] as String?;
 
       if (unitID != null) {
         final category = unitID.substring(0, 2);
@@ -172,7 +172,7 @@ class HeadDashboardPage extends StatelessWidget {
     final Map<String, int> tombCounts = {};
 
     for (var doc in snapshot.docs) {
-      final unitID = doc['unitID'] as String?;
+      final unitID = doc['tomb'] as String?;
 
       if (unitID != null) {
         final category = unitID.substring(0, 2);

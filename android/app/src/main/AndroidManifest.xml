@@ -2,7 +2,7 @@
     package="com.example.himi_navi_rec">
 
     <application
-        android:label="himi_navi_rec"
+        android:label="Himlayang Navigation"
         android:name="${applicationName}"
         android:icon="@mipmap/launcher_icon">
         <activity

@@ -17,6 +17,61 @@ class ClientDashboardPage extends StatelessWidget {
 
   const ClientDashboardPage(this.userEmail, {Key? key}) : super(key: key);
 
+  Future<void> checkExpiryAlert(BuildContext context) async {
+    final currentUserEmail = FirebaseAuth.instance.currentUser?.email;
+
+    if (currentUserEmail != null) {
+      final List<ExpiredItem> expiredItems =
+          await getExpiredItems(currentUserEmail);
+
+      if (expiredItems.isNotEmpty) {
+        // Calculate the date one month before the current date
+        final currentDate = DateTime.now();
+        final oneMonthBeforeNow =
+            currentDate.subtract(const Duration(days: 30));
+
+        final List<ExpiredItem> expiringSoonItems = expiredItems
+            .where((item) => item.expiryDate.isBefore(oneMonthBeforeNow))
+            .toList();
+
+        if (expiringSoonItems.isNotEmpty) {
+          // ignore: use_build_context_synchronously
+          showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                title: const Text('Expiry Alert'),
+                content: SizedBox(
+                  width: double.maxFinite,
+                  height: MediaQuery.of(context).size.height *
+                      0.15, // Set a fixed height for the content container
+                  child: SingleChildScrollView(
+                    child: Column(
+                      children: expiringSoonItems
+                          .map(
+                            (item) => Text(
+                                '${item.name} will expire. Please settle the account soon.'),
+                          )
+                          .toList(),
+                    ),
+                  ),
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                    child: const Text('OK'),
+                  ),
+                ],
+              );
+            },
+          );
+        }
+      }
+    }
+  }
+
   void signUserOut(BuildContext context) {
     showDialog(
       context: context,
@@ -61,11 +116,11 @@ class ClientDashboardPage extends StatelessWidget {
 
     final tombSnapshot = await FirebaseFirestore.instance
         .collection('tombs')
-        .where('owner', isEqualTo: currentUserEmail)
+        .where('owner_email', isEqualTo: currentUserEmail)
         .get();
 
     final availedTombs = tombSnapshot.docs.map((doc) {
-      final tombID = doc['unitID'] as String;
+      final tombID = doc['tomb'] as String;
       return {
         'tombID': tombID,
       };
@@ -78,7 +133,7 @@ class ClientDashboardPage extends StatelessWidget {
       return [];
     }
 
-    final deceasedSnapshot = await FirebaseFirestore.instance
+    final matchingDeceasedSnapshot = await FirebaseFirestore.instance
         .collection('deceased')
         .where('tomb', whereIn: tombIDs)
         .get();
@@ -86,27 +141,31 @@ class ClientDashboardPage extends StatelessWidget {
     final tombDetails = availedTombs.map((tomb) {
       final tombID = tomb['tombID'] as String;
 
-      final matchingDeceased =
-          deceasedSnapshot.docs.any((doc) => doc['tomb'] == tombID)
-              ? deceasedSnapshot.docs.firstWhere((doc) => doc['tomb'] == tombID)
-              : null;
+      final matchingDeceased = matchingDeceasedSnapshot.docs
+          .where((doc) => doc['tomb'] == tombID)
+          .map((doc) {
+        final name = doc['name'] as String;
+        final graveAvailDate = doc['grave_avail_date'] as Timestamp?;
+        final expiryDate =
+            graveAvailDate?.toDate().add(const Duration(days: 5 * 365));
 
-      if (matchingDeceased == null) {
+        return {
+          'name': name,
+          'graveAvailDate': graveAvailDate,
+          'expiryDate': expiryDate,
+        };
+      }).toList();
+
+      if (matchingDeceased.isEmpty) {
         return {
           'tombID': tombID,
           'message': 'The tomb has no record, please contact Admin',
         };
       }
 
-      final graveAvailDate = matchingDeceased['grave_avail_date'] as Timestamp?;
-
-      final expiryDate =
-          graveAvailDate?.toDate().add(const Duration(days: 5 * 365));
-
       return {
         'tombID': tombID,
-        'graveAvailDate': graveAvailDate,
-        'expiryDate': expiryDate,
+        'deceased': matchingDeceased,
       };
     }).toList();
 
@@ -133,17 +192,28 @@ class ClientDashboardPage extends StatelessWidget {
     return oldestDate;
   }
 
-  Future<List<ExpiredItem>> getExpiredItems() async {
-    final snapshot =
-        await FirebaseFirestore.instance.collection('deceased').get();
+  Future<List<ExpiredItem>> getExpiredItems(String currentUserEmail) async {
+    final matchingTombsSnapshot = await FirebaseFirestore.instance
+        .collection('tombs')
+        .where('owner_email', isEqualTo: currentUserEmail)
+        .get();
+
+    final tombIDs =
+        matchingTombsSnapshot.docs.map((doc) => doc['tomb'] as String).toList();
+
+    final matchingDeceasedSnapshot = await FirebaseFirestore.instance
+        .collection('deceased')
+        .where('tomb', whereIn: tombIDs)
+        .get();
+
     final currentDate = DateTime.now();
     final List<ExpiredItem> expiredItems = [];
 
-    for (var doc in snapshot.docs) {
-      final graveAvailDate = doc['grave_avail_date'] as Timestamp?;
+    for (var doc in matchingDeceasedSnapshot.docs) {
       final name = doc['name'] as String?;
+      final graveAvailDate = doc['grave_avail_date'] as Timestamp?;
 
-      if (graveAvailDate != null && name != null) {
+      if (name != null && graveAvailDate != null) {
         final expiryDate =
             graveAvailDate.toDate().add(const Duration(days: 5 * 365));
 
@@ -154,27 +224,6 @@ class ClientDashboardPage extends StatelessWidget {
     }
 
     return expiredItems;
-  }
-
-  Future<Map<String, int>> getTombCounts() async {
-    final snapshot = await FirebaseFirestore.instance.collection('tombs').get();
-    final Map<String, int> tombCounts = {};
-
-    for (var doc in snapshot.docs) {
-      final unitID = doc['unitID'] as String?;
-
-      if (unitID != null) {
-        final category = unitID.substring(0, 2);
-
-        if (tombCounts.containsKey(category)) {
-          tombCounts[category] = tombCounts[category]! + 1;
-        } else {
-          tombCounts[category] = 1;
-        }
-      }
-    }
-
-    return tombCounts;
   }
 
   Widget responsiveGridDashboard(BuildContext context) {
@@ -209,7 +258,7 @@ class ClientDashboardPage extends StatelessWidget {
                         builder: (BuildContext context) {
                           return SafeArea(
                             child: SizedBox(
-                              height: MediaQuery.of(context).size.height * 0.5,
+                              height: MediaQuery.of(context).size.height * 0.7,
                               child: Padding(
                                 padding: const EdgeInsets.all(16.0),
                                 child: Column(
@@ -225,69 +274,87 @@ class ClientDashboardPage extends StatelessWidget {
                                     ),
                                     const SizedBox(height: 16.0),
                                     Expanded(
-                                      child: availedTombs.isEmpty
-                                          ? const Center(
-                                              child: Text(
-                                                'No availed tombs.',
-                                                style:
-                                                    TextStyle(fontSize: 16.0),
-                                              ),
-                                            )
-                                          : ListView.builder(
-                                              shrinkWrap: true,
-                                              physics:
-                                                  const NeverScrollableScrollPhysics(),
-                                              itemCount: availedTombs.length,
-                                              itemBuilder: (context, index) {
-                                                final tomb =
-                                                    availedTombs[index];
-                                                if (tomb
-                                                    .containsKey('message')) {
-                                                  // If 'message' key exists, it means tombID wasn't found in 'deceased'
-                                                  final message =
-                                                      tomb['message'] as String;
-                                                  return ListTile(
-                                                    title: Text(tomb['tombID']),
-                                                    subtitle: Text(message),
-                                                  );
-                                                } else {
+                                      child: SingleChildScrollView(
+                                        child: availedTombs.isEmpty
+                                            ? const Center(
+                                                child: Text(
+                                                  'No availed tombs.',
+                                                  style:
+                                                      TextStyle(fontSize: 16.0),
+                                                ),
+                                              )
+                                            : ListView.builder(
+                                                shrinkWrap: true,
+                                                physics:
+                                                    const NeverScrollableScrollPhysics(),
+                                                itemCount: availedTombs.length,
+                                                itemBuilder: (context, index) {
+                                                  final tomb =
+                                                      availedTombs[index];
                                                   final tombID =
                                                       tomb['tombID'] as String;
-                                                  final graveAvailDate =
-                                                      tomb['graveAvailDate']
-                                                          as Timestamp;
-                                                  final expiryDate =
-                                                      tomb['expiryDate']
-                                                          as DateTime?;
-                                                  final formattedPurchaseDate =
-                                                      DateFormat('yyyy-MM-dd')
-                                                          .format(graveAvailDate
-                                                              .toDate());
-                                                  final formattedExpiryDate =
-                                                      expiryDate != null
-                                                          ? DateFormat(
+                                                  final deceasedList =
+                                                      tomb['deceased'] as List<
+                                                          Map<String,
+                                                              dynamic>>?;
+
+                                                  if (deceasedList == null ||
+                                                      deceasedList.isEmpty) {
+                                                    return ListTile(
+                                                      title: Text(tombID),
+                                                      subtitle: const Text(
+                                                          'No records found'),
+                                                    );
+                                                  }
+
+                                                  return ExpansionTile(
+                                                    title: Text(tombID),
+                                                    children: deceasedList
+                                                        .map((deceased) {
+                                                      final name =
+                                                          deceased['name']
+                                                              as String;
+                                                      final graveAvailDate =
+                                                          deceased[
+                                                                  'graveAvailDate']
+                                                              as Timestamp;
+                                                      final expiryDate =
+                                                          deceased['expiryDate']
+                                                              as DateTime?;
+
+                                                      final formattedPurchaseDate =
+                                                          DateFormat(
                                                                   'yyyy-MM-dd')
                                                               .format(
-                                                                  expiryDate)
-                                                          : 'N/A';
+                                                                  graveAvailDate
+                                                                      .toDate());
+                                                      final formattedExpiryDate =
+                                                          expiryDate != null
+                                                              ? DateFormat(
+                                                                      'yyyy-MM-dd')
+                                                                  .format(
+                                                                      expiryDate)
+                                                              : 'N/A';
 
-                                                  return ListTile(
-                                                    title: Text(tombID),
-                                                    subtitle: Column(
-                                                      crossAxisAlignment:
-                                                          CrossAxisAlignment
-                                                              .start,
-                                                      children: [
-                                                        Text(
-                                                            'Purchase Date: $formattedPurchaseDate'),
-                                                        Text(
-                                                            'Expiry Date: $formattedExpiryDate'),
-                                                      ],
-                                                    ),
+                                                      return ListTile(
+                                                        title: Text(name),
+                                                        subtitle: Column(
+                                                          crossAxisAlignment:
+                                                              CrossAxisAlignment
+                                                                  .start,
+                                                          children: [
+                                                            Text(
+                                                                'Purchase Date: $formattedPurchaseDate'),
+                                                            Text(
+                                                                'Expiry Date: $formattedExpiryDate'),
+                                                          ],
+                                                        ),
+                                                      );
+                                                    }).toList(),
                                                   );
-                                                }
-                                              },
-                                            ),
+                                                },
+                                              ),
+                                      ),
                                     ),
                                     Padding(
                                       padding: const EdgeInsets.all(16.0),
@@ -417,9 +484,12 @@ class ClientDashboardPage extends StatelessWidget {
         if (snapshot.hasData) {
           final markers = snapshot.data!.docs
               .where((doc) =>
-                  doc['owner'] == FirebaseAuth.instance.currentUser?.email)
+                  (doc.data() as Map<String, dynamic>)
+                      .containsKey('owner_email') &&
+                  doc['owner_email'] ==
+                      FirebaseAuth.instance.currentUser?.email)
               .map((doc) {
-                final tombID = doc['unitID'] as String?;
+                final tombID = doc['tomb'] as String?;
                 final coords = doc['coords'] as List<dynamic>?;
 
                 if (tombID != null && coords != null && coords.length >= 2) {
@@ -431,7 +501,7 @@ class ClientDashboardPage extends StatelessWidget {
                     position: LatLng(lat, lng),
                     infoWindow: InfoWindow(
                       title: tombID,
-                      snippet: 'Owner: ${doc['owner'] ?? ''}',
+                      snippet: 'owner_email: ${doc['owner_email'] ?? ''}',
                     ),
                   );
                 }
@@ -468,6 +538,9 @@ class ClientDashboardPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      checkExpiryAlert(context);
+    });
     return SafeArea(
       child: Scaffold(
         body: Column(
