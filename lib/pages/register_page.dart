@@ -92,7 +92,6 @@ class _RegisterPageState extends State<RegisterPage> {
           .set({
         'email': email,
         'isVerified': false,
-        'createdAt': FieldValue.serverTimestamp(),
       });
 
       await userCredential.user!.sendEmailVerification();
