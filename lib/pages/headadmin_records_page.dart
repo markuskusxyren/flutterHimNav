@@ -56,7 +56,7 @@ class _HeadRecordsPageState extends State<HeadRecordsPage> {
               const SizedBox(height: 3),
               Text('Sex: $sex'),
               const SizedBox(height: 3),
-              Text('Tomb: $tomb'),
+              Text('Lot: $tomb'),
             ],
           ),
           actions: [
@@ -123,7 +123,7 @@ class _HeadRecordsPageState extends State<HeadRecordsPage> {
                 ),
                 const SizedBox(height: 16.0),
                 TextFormField(
-                  decoration: const InputDecoration(labelText: 'Tomb'),
+                  decoration: const InputDecoration(labelText: 'Lot'),
                   initialValue: tomb,
                   onChanged: (value) {
                     setState(() {
@@ -315,7 +315,7 @@ class _HeadRecordsPageState extends State<HeadRecordsPage> {
                   ),
                   const SizedBox(height: 16.0),
                   TextFormField(
-                    decoration: const InputDecoration(labelText: 'Tomb'),
+                    decoration: const InputDecoration(labelText: 'Lot'),
                     onChanged: (value) {
                       setState(() {
                         tomb = value;
@@ -409,7 +409,7 @@ class _HeadRecordsPageState extends State<HeadRecordsPage> {
                           firestore.collection('deceased').add({
                             'name': name,
                             'sex': sex,
-                            'tomb': tomb,
+                            'Lot': tomb,
                             'date_of_birth': Timestamp.fromDate(
                               selectedDateOfBirth!,
                             ),
@@ -477,7 +477,7 @@ class _HeadRecordsPageState extends State<HeadRecordsPage> {
                 _searchFilter = newValue!;
               });
             },
-            items: <String>['Name', 'Tomb']
+            items: <String>['Name', 'Lot']
                 .map<DropdownMenuItem<String>>((String value) {
               return DropdownMenuItem<String>(
                 value: value,
@@ -528,7 +528,7 @@ class _HeadRecordsPageState extends State<HeadRecordsPage> {
                         : records.where((record) {
                             final recordData = record.data();
                             final searchField =
-                                _searchFilter == 'Tomb' ? 'tomb' : 'name';
+                                _searchFilter == 'Lot' ? 'lot' : 'name';
                             final fieldValue = recordData[searchField];
                             return fieldValue
                                 .toLowerCase()
@@ -560,7 +560,7 @@ class _HeadRecordsPageState extends State<HeadRecordsPage> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text('Purchase Date: $graveAvailDate'),
-                                Text('Tomb: $tomb'),
+                                Text('Lot: $tomb'),
                               ],
                             ),
                             trailing: IconButton(

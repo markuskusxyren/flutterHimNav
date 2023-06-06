@@ -222,7 +222,7 @@ class AdminDashboardPage extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
                               const Text(
-                                'Expired Tombs',
+                                'Forefeited Lots',
                                 style: TextStyle(
                                   fontSize: 20,
                                   fontWeight: FontWeight.bold,
@@ -245,7 +245,7 @@ class AdminDashboardPage extends StatelessWidget {
                                           return ListTile(
                                             title: Text(item.name),
                                             subtitle: Text(
-                                                'Expiry Date: $formattedExpiryDate'),
+                                                'Forefeiture Date: $formattedExpiryDate'),
                                           );
                                         },
                                       );
@@ -291,7 +291,7 @@ class AdminDashboardPage extends StatelessWidget {
                     children: [
                       Icon(Icons.person, size: 50),
                       Text(
-                        'Expired',
+                        'Forefeited',
                         style: TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.bold,
@@ -328,7 +328,7 @@ class AdminDashboardPage extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
                             const Text(
-                              'Tombs Chart',
+                              'Lot Chart',
                               style: TextStyle(
                                 fontSize: 20,
                                 fontWeight: FontWeight.bold,
@@ -414,7 +414,7 @@ class AdminDashboardPage extends StatelessWidget {
                     children: [
                       Icon(Icons.pie_chart, size: 50),
                       Text(
-                        'Tombs Chart',
+                        'Lot Chart',
                         style: TextStyle(
                             fontSize: 15, fontWeight: FontWeight.bold),
                       ),

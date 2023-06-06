@@ -22,7 +22,7 @@ class _HeadMapPageState extends State<HeadMapPage> {
   List<Map<String, dynamic>> tombs = [];
   String? selectedUnitId;
   List<double>? selectedCoords;
-  String dropdownValue = 'Tomb';
+  String dropdownValue = 'Lot';
 
   @override
   void initState() {
@@ -72,7 +72,7 @@ class _HeadMapPageState extends State<HeadMapPage> {
             tomb['isAvailable'] &&
             (searchAvailable == null ||
                 searchAvailable!.isEmpty ||
-                (dropdownValue == 'Tomb'
+                (dropdownValue == 'Lot'
                     ? tomb['tomb']
                         .toLowerCase()
                         .contains(searchAvailable!.toLowerCase())
@@ -86,7 +86,7 @@ class _HeadMapPageState extends State<HeadMapPage> {
             !tomb['isAvailable'] &&
             (searchNotAvailable == null ||
                 searchNotAvailable!.isEmpty ||
-                (dropdownValue == 'Tomb'
+                (dropdownValue == 'Lot'
                     ? tomb['tomb']
                         .toLowerCase()
                         .contains(searchNotAvailable!.toLowerCase())
@@ -134,7 +134,7 @@ class _HeadMapPageState extends State<HeadMapPage> {
                               });
                             },
                             child: const ListTile(
-                              title: Text('Available Tombs'),
+                              title: Text('Available Lots'),
                             ),
                           );
                         },
@@ -162,7 +162,7 @@ class _HeadMapPageState extends State<HeadMapPage> {
                                       dropdownValue = newValue!;
                                     });
                                   },
-                                  items: <String>['Tomb', 'Owner']
+                                  items: <String>['Lot', 'Owner']
                                       .map<DropdownMenuItem<String>>(
                                     (String value) {
                                       return DropdownMenuItem<String>(
@@ -190,7 +190,7 @@ class _HeadMapPageState extends State<HeadMapPage> {
                                             context: context,
                                             builder: (context) {
                                               return AlertDialog(
-                                                title: const Text('Tomb Info'),
+                                                title: const Text('Lot Info'),
                                                 content: SingleChildScrollView(
                                                   child: SizedBox(
                                                     width: double.infinity,
@@ -200,7 +200,7 @@ class _HeadMapPageState extends State<HeadMapPage> {
                                                               .start,
                                                       children: [
                                                         Text(
-                                                            'Tomb: ${tomb["tomb"]}'),
+                                                            'Lot: ${tomb["tomb"]}'),
                                                         Text(
                                                             'Coordinates: ${tomb["coords"][0].toStringAsFixed(2)}... ${tomb["coords"][1].toStringAsFixed(2)}...'),
                                                         Text(
@@ -264,7 +264,7 @@ class _HeadMapPageState extends State<HeadMapPage> {
                               });
                             },
                             child: const ListTile(
-                              title: Text('Not Available Tombs'),
+                              title: Text('Not Available Lots'),
                             ),
                           );
                         },
@@ -292,7 +292,7 @@ class _HeadMapPageState extends State<HeadMapPage> {
                                       dropdownValue = newValue!;
                                     });
                                   },
-                                  items: <String>['Tomb', 'Owner']
+                                  items: <String>['Lot', 'Owner']
                                       .map<DropdownMenuItem<String>>(
                                           (String value) {
                                     return DropdownMenuItem<String>(
@@ -319,7 +319,7 @@ class _HeadMapPageState extends State<HeadMapPage> {
                                             context: context,
                                             builder: (context) {
                                               return AlertDialog(
-                                                title: const Text('Tomb Info'),
+                                                title: const Text('Lot Info'),
                                                 content: SingleChildScrollView(
                                                   child: SizedBox(
                                                     width: double.infinity,
@@ -329,7 +329,7 @@ class _HeadMapPageState extends State<HeadMapPage> {
                                                               .start,
                                                       children: [
                                                         Text(
-                                                            'Tomb: ${tomb["tomb"]}'),
+                                                            'Lot: ${tomb["tomb"]}'),
                                                         Text(
                                                             'Coordinates: ${tomb["coords"][0].toStringAsFixed(2)}... ${tomb["coords"][1].toStringAsFixed(2)}...'),
                                                         Text(
@@ -398,7 +398,7 @@ class _HeadMapPageState extends State<HeadMapPage> {
                 onPressed: () {
                   _showAddDialog();
                 },
-                child: const Text('Add Tomb'),
+                child: const Text('Add Lot'),
               ),
             ),
             SizedBox(
@@ -436,13 +436,13 @@ class _HeadMapPageState extends State<HeadMapPage> {
         return StatefulBuilder(
           builder: (BuildContext context, StateSetter setState) {
             return AlertDialog(
-              title: const Text('Edit Tomb'),
+              title: const Text('Edit Lot'),
               content: SingleChildScrollView(
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     TextFormField(
-                      decoration: const InputDecoration(labelText: 'Tomb'),
+                      decoration: const InputDecoration(labelText: 'Lot'),
                       initialValue: unitID,
                       onChanged: (value) {
                         setState(() {
@@ -583,7 +583,7 @@ class _HeadMapPageState extends State<HeadMapPage> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   const Text(
-                    'Add Tomb',
+                    'Add Lot',
                     style: TextStyle(
                       fontSize: 18.0,
                       fontWeight: FontWeight.bold,
@@ -591,7 +591,7 @@ class _HeadMapPageState extends State<HeadMapPage> {
                   ),
                   const SizedBox(height: 16.0),
                   TextFormField(
-                    decoration: const InputDecoration(labelText: 'Tomb'),
+                    decoration: const InputDecoration(labelText: 'Lot'),
                     onChanged: (value) {
                       setState(() {
                         unitID = value;

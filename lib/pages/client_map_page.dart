@@ -19,11 +19,15 @@ class ClientMapPage extends StatefulWidget {
 }
 
 class _ClientMapPageState extends State<ClientMapPage> {
+  List<Map<String, dynamic>> allTombs = [];
   List<Map<String, dynamic>> tombs = [];
   String? selectedUnitId;
   List<double>? selectedCoords;
   String? selectedAvailedUnitId;
-  String dropdownValue = 'Unit ID';
+  String dropdownValue = 'Tomb';
+  String? searchAll;
+  bool reservedByCurrentUser = false;
+  String? selectedAllTombId;
 
   @override
   void initState() {
@@ -35,14 +39,12 @@ class _ClientMapPageState extends State<ClientMapPage> {
 
   bool availablePanelExpanded = false;
   bool availedPanelExpanded = false;
+  bool allTombsPanelExpanded = false;
 
   void getTombs() {
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
-      _firestore
-          .collection('tombs')
-          .snapshots()
-          .listen((QuerySnapshot querySnapshot) {
+      _firestore.collection('tombs').get().then((QuerySnapshot querySnapshot) {
         setState(() {
           tombs = querySnapshot.docs.map((doc) {
             Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
@@ -55,13 +57,15 @@ class _ClientMapPageState extends State<ClientMapPage> {
             return {
               "documentID": doc.id,
               "coords": coords,
-              "unitID": tomb,
+              "tomb": tomb,
               "isAvailable": isAvailable,
               "owner": ownerEmail,
             };
           }).toList();
 
           selectedUnitId = tombs.isNotEmpty ? null : null;
+
+          allTombs = tombs;
         });
       });
     }
@@ -85,8 +89,8 @@ class _ClientMapPageState extends State<ClientMapPage> {
             tomb['isAvailable'] &&
             (searchAvailable == null ||
                 searchAvailable!.isEmpty ||
-                (dropdownValue == 'Unit ID'
-                    ? tomb['unitID']
+                (dropdownValue == 'Tomb'
+                    ? tomb['tomb']
                         .toLowerCase()
                         .contains(searchAvailable!.toLowerCase())
                     : tomb['owner']
@@ -97,6 +101,11 @@ class _ClientMapPageState extends State<ClientMapPage> {
     List<Map<String, dynamic>> availedTombs = tombs
         .where(
             (tomb) => !tomb['isAvailable'] && tomb['owner'] == currentUserEmail)
+        .toList();
+
+    List<Map<String, dynamic>> allTombsFiltered = allTombs
+        .where((tomb) =>
+            tomb['tomb'].toLowerCase().contains(searchAll?.toLowerCase() ?? ''))
         .toList();
 
     return Scaffold(
@@ -116,8 +125,10 @@ class _ClientMapPageState extends State<ClientMapPage> {
                       setState(() {
                         if (panelIndex == 0) {
                           availablePanelExpanded = !isExpanded;
-                        } else {
+                        } else if (panelIndex == 1) {
                           availedPanelExpanded = !isExpanded;
+                        } else {
+                          // Handle the index for the new panel
                         }
                       });
                     },
@@ -131,7 +142,7 @@ class _ClientMapPageState extends State<ClientMapPage> {
                               });
                             },
                             child: const ListTile(
-                              title: Text('Available Tombs'),
+                              title: Text('Available Lots'),
                             ),
                           );
                         },
@@ -148,81 +159,111 @@ class _ClientMapPageState extends State<ClientMapPage> {
                                 prefixIcon: Icon(Icons.search),
                               ),
                             ),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                const Text('Search by:'),
-                                DropdownButton<String>(
-                                  value: dropdownValue,
-                                  onChanged: (String? newValue) {
-                                    setState(() {
-                                      dropdownValue = newValue!;
-                                    });
-                                  },
-                                  items: <String>['Unit ID', 'Owner']
-                                      .map<DropdownMenuItem<String>>(
-                                          (String value) {
-                                    return DropdownMenuItem<String>(
-                                      value: value,
-                                      child: Text(value),
-                                    );
-                                  }).toList(),
-                                ),
-                              ],
-                            ),
                             ...availableTombs.isNotEmpty
                                 ? availableTombs.map<Widget>((tomb) {
                                     return ListTile(
-                                      tileColor:
-                                          selectedUnitId == tomb["unitID"]
-                                              ? Colors.lightBlueAccent
-                                              : null,
-                                      title: Text(tomb["unitID"]),
-                                      trailing: IconButton(
-                                        icon: const Icon(Icons.info),
-                                        onPressed: () {
-                                          showDialog(
-                                            context: context,
-                                            builder: (context) {
-                                              return AlertDialog(
-                                                title: const Text('Tomb Info'),
-                                                content: SingleChildScrollView(
-                                                  child: SizedBox(
-                                                    width: double.infinity,
-                                                    child: Column(
-                                                      crossAxisAlignment:
-                                                          CrossAxisAlignment
-                                                              .start,
-                                                      children: [
-                                                        Text(
-                                                            'Unit ID: ${tomb["unitID"]}'),
-                                                        Text(
-                                                            'Coordinates: ${tomb["coords"][0].toStringAsFixed(2)}... ${tomb["coords"][1].toStringAsFixed(2)}...'),
-                                                        Text(
-                                                            'Availability: ${tomb["isAvailable"]}'),
-                                                        Text(
-                                                            'Owner: ${tomb["owner"] ?? "No Owner"}'),
-                                                      ],
-                                                    ),
-                                                  ),
+                                      tileColor: selectedUnitId == tomb["tomb"]
+                                          ? Colors.lightBlueAccent
+                                          : null,
+                                      title: Text(tomb["tomb"]),
+                                      trailing:
+                                          reservedByCurrentUser ||
+                                                  tomb['isAvailable'] == null ||
+                                                  !tomb['isAvailable']
+                                              ? null
+                                              : IconButton(
+                                                  icon: const Icon(Icons.info),
+                                                  onPressed: () {
+                                                    showDialog(
+                                                      context: context,
+                                                      builder: (context) {
+                                                        return AlertDialog(
+                                                          title: const Text(
+                                                              'Lot Info'),
+                                                          content:
+                                                              SingleChildScrollView(
+                                                            child: SizedBox(
+                                                              width: double
+                                                                  .infinity,
+                                                              child: Column(
+                                                                crossAxisAlignment:
+                                                                    CrossAxisAlignment
+                                                                        .start,
+                                                                children: [
+                                                                  Text(
+                                                                      'Lot: ${tomb["tomb"]}'),
+                                                                  Text(
+                                                                      'Coordinates: ${tomb["coords"][0].toStringAsFixed(2)}... ${tomb["coords"][1].toStringAsFixed(2)}...'),
+                                                                  Text(
+                                                                      'Availability: ${tomb["isAvailable"]}'),
+                                                                  Text(
+                                                                      'Owner: ${tomb["owner"] ?? "No Owner"}'),
+                                                                ],
+                                                              ),
+                                                            ),
+                                                          ),
+                                                          actions: <Widget>[
+                                                            TextButton(
+                                                              child: const Text(
+                                                                  'Reserve'),
+                                                              onPressed: () {
+                                                                showDialog(
+                                                                  context:
+                                                                      context,
+                                                                  builder:
+                                                                      (context) {
+                                                                    return AlertDialog(
+                                                                      title: const Text(
+                                                                          'Reservation Confirmation'),
+                                                                      content:
+                                                                          const Text(
+                                                                              'Lot reserved, an admin will contact you soon.'),
+                                                                      actions: <Widget>[
+                                                                        TextButton(
+                                                                          child:
+                                                                              const Text('Close'),
+                                                                          onPressed:
+                                                                              () {
+                                                                            Navigator.of(context).pop();
+                                                                            Navigator.of(context).pop();
+                                                                          },
+                                                                        ),
+                                                                      ],
+                                                                    );
+                                                                  },
+                                                                );
+                                                                // Update the owner_email field with [RESERVED] prefix
+                                                                _firestore
+                                                                    .collection(
+                                                                        'tombs')
+                                                                    .doc(tomb[
+                                                                        'documentID'])
+                                                                    .update({
+                                                                  'owner_email':
+                                                                      '[RESERVED]$currentUserEmail',
+                                                                  'isAvailable':
+                                                                      false,
+                                                                });
+                                                              },
+                                                            ),
+                                                            TextButton(
+                                                              child: const Text(
+                                                                  'Close'),
+                                                              onPressed: () {
+                                                                Navigator.of(
+                                                                        context)
+                                                                    .pop();
+                                                              },
+                                                            ),
+                                                          ],
+                                                        );
+                                                      },
+                                                    );
+                                                  },
                                                 ),
-                                                actions: <Widget>[
-                                                  TextButton(
-                                                    child: const Text('Close'),
-                                                    onPressed: () {
-                                                      Navigator.of(context)
-                                                          .pop();
-                                                    },
-                                                  ),
-                                                ],
-                                              );
-                                            },
-                                          );
-                                        },
-                                      ),
                                       onTap: () {
                                         setState(() {
-                                          selectedUnitId = tomb["unitID"];
+                                          selectedUnitId = tomb["tomb"];
                                           selectedCoords = tomb["coords"];
                                           selectedAvailedUnitId = null;
                                         });
@@ -247,7 +288,7 @@ class _ClientMapPageState extends State<ClientMapPage> {
                               });
                             },
                             child: const ListTile(
-                              title: Text('Availed Tombs'),
+                              title: Text('Availed Lots'),
                             ),
                           );
                         },
@@ -256,11 +297,11 @@ class _ClientMapPageState extends State<ClientMapPage> {
                             ...availedTombs.isNotEmpty
                                 ? availedTombs.map<Widget>((tomb) {
                                     return ListTile(
-                                      tileColor: selectedAvailedUnitId ==
-                                              tomb["unitID"]
-                                          ? Colors.lightBlueAccent
-                                          : null,
-                                      title: Text(tomb["unitID"]),
+                                      tileColor:
+                                          selectedAvailedUnitId == tomb["tomb"]
+                                              ? Colors.lightBlueAccent
+                                              : null,
+                                      title: Text(tomb["tomb"]),
                                       trailing: IconButton(
                                         icon: const Icon(Icons.info),
                                         onPressed: () {
@@ -268,7 +309,7 @@ class _ClientMapPageState extends State<ClientMapPage> {
                                             context: context,
                                             builder: (context) {
                                               return AlertDialog(
-                                                title: const Text('Tomb Info'),
+                                                title: const Text('Lot Info'),
                                                 content: SingleChildScrollView(
                                                   child: SizedBox(
                                                     width: double.infinity,
@@ -278,7 +319,7 @@ class _ClientMapPageState extends State<ClientMapPage> {
                                                               .start,
                                                       children: [
                                                         Text(
-                                                            'Unit ID: ${tomb["unitID"]}'),
+                                                            'Lot: ${tomb["tomb"]}'),
                                                         Text(
                                                             'Coordinates: ${tomb["coords"][0].toStringAsFixed(2)}... ${tomb["coords"][1].toStringAsFixed(2)}...'),
                                                         Text(
@@ -305,22 +346,77 @@ class _ClientMapPageState extends State<ClientMapPage> {
                                       ),
                                       onTap: () {
                                         setState(() {
-                                          selectedUnitId = tomb["unitID"];
+                                          selectedUnitId = tomb["tomb"];
                                           selectedCoords = tomb["coords"];
                                           selectedAvailedUnitId = tomb[
-                                              "unitID"]; // Set selected availed tomb
+                                              "tomb"]; // Set selected availed tomb
                                         });
                                       },
                                     );
                                   }).toList()
                                 : [
                                     const SizedBox(height: 5),
-                                    const Text("No availed tombs"),
+                                    const Text("No Availed Lots"),
                                     const SizedBox(height: 5),
                                   ],
                           ],
                         ),
                         isExpanded: availedPanelExpanded,
+                      ),
+                      ExpansionPanel(
+                        headerBuilder: (context, isExpanded) {
+                          return InkWell(
+                            onTap: () {
+                              setState(() {
+                                allTombsPanelExpanded = !isExpanded;
+                              });
+                            },
+                            child: const ListTile(
+                              title: Text('All Lots'),
+                            ),
+                          );
+                        },
+                        body: Column(
+                          children: [
+                            TextField(
+                              onChanged: (value) {
+                                setState(() {
+                                  searchAll = value;
+                                });
+                              },
+                              decoration: const InputDecoration(
+                                labelText: "Search",
+                                prefixIcon: Icon(Icons.search),
+                              ),
+                            ),
+                            const SizedBox(height: 10),
+                            ...allTombsFiltered.isNotEmpty
+                                ? allTombsFiltered.map<Widget>((tomb) {
+                                    return ListTile(
+                                      tileColor: selectedUnitId == tomb["tomb"]
+                                          ? Colors.lightBlueAccent
+                                          : null,
+                                      title: Text(tomb["tomb"]),
+                                      onTap: () {
+                                        setState(() {
+                                          selectedUnitId = tomb["tomb"];
+                                          selectedCoords = tomb["coords"];
+                                          selectedAllTombId = tomb[
+                                              "documentID"]; // Set selected tomb ID
+                                        });
+                                      },
+                                    );
+                                  }).toList()
+                                : [
+                                    const SizedBox(height: 5),
+                                    const Text("Nothing to see here"),
+                                    const SizedBox(height: 5),
+                                  ],
+                          ],
+                        ),
+                        isExpanded: allTombsPanelExpanded &&
+                            allTombsFiltered
+                                .isNotEmpty, // Expand panel only if there are matching tombs
                       ),
                     ],
                   ),
@@ -335,12 +431,33 @@ class _ClientMapPageState extends State<ClientMapPage> {
               child: ElevatedButton(
                 onPressed: () {
                   if (selectedCoords != null) {
-                    Navigator.of(context).push(MaterialPageRoute(
-                      builder: (context) => NavigationScreen(
-                        selectedCoords![0], // Pass the latitude from coords
-                        selectedCoords![1], // Pass the longitude from coords
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => NavigationScreen(
+                          selectedCoords![0], // Pass the latitude from coords
+                          selectedCoords![1], // Pass the longitude from coords
+                        ),
                       ),
-                    ));
+                    );
+                  } else {
+                    showDialog(
+                      context: context,
+                      builder: (context) {
+                        return AlertDialog(
+                          title: const Text('No Tomb Selected'),
+                          content: const Text(
+                              'Please select a tomb to get directions to it.'),
+                          actions: <Widget>[
+                            TextButton(
+                              child: const Text('Close'),
+                              onPressed: () {
+                                Navigator.of(context).pop();
+                              },
+                            ),
+                          ],
+                        );
+                      },
+                    );
                   }
                 },
                 child: const Text('Get Directions'),

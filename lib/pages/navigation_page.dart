@@ -111,6 +111,7 @@ class _NavigationScreenState extends State<NavigationScreen> {
                     zoom: 16,
                   ),
                   markers: {sourcePosition!, destinationPosition!},
+                  mapType: MapType.hybrid,
                   onMapCreated: (GoogleMapController controller) async {
                     _controller.complete(controller);
                     _currentPosition = await location.getLocation();
@@ -129,6 +130,22 @@ class _NavigationScreenState extends State<NavigationScreen> {
                       isMapInitialized = true;
                     }
                   },
+                ),
+                Positioned(
+                  top: 16,
+                  left: 5,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: Colors.white.withOpacity(0.5),
+                    ),
+                    child: IconButton(
+                      icon: const Icon(Icons.arrow_back),
+                      onPressed: () {
+                        Navigator.pop(context);
+                      },
+                    ),
+                  ),
                 ),
                 Positioned(
                   bottom: 10,

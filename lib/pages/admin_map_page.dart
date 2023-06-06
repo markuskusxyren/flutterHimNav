@@ -22,7 +22,7 @@ class _AdminMapPageState extends State<AdminMapPage> {
   List<Map<String, dynamic>> tombs = [];
   String? selectedUnitId;
   List<double>? selectedCoords;
-  String dropdownValue = 'Tomb';
+  String dropdownValue = 'Lot';
 
   @override
   void initState() {
@@ -71,7 +71,7 @@ class _AdminMapPageState extends State<AdminMapPage> {
             tomb['isAvailable'] &&
             (searchAvailable == null ||
                 searchAvailable!.isEmpty ||
-                (dropdownValue == 'Tomb'
+                (dropdownValue == 'Lot'
                     ? tomb['tomb']
                         .toLowerCase()
                         .contains(searchAvailable!.toLowerCase())
@@ -85,7 +85,7 @@ class _AdminMapPageState extends State<AdminMapPage> {
             !tomb['isAvailable'] &&
             (searchNotAvailable == null ||
                 searchNotAvailable!.isEmpty ||
-                (dropdownValue == 'Tomb'
+                (dropdownValue == 'Lot'
                     ? tomb['tomb']
                         .toLowerCase()
                         .contains(searchNotAvailable!.toLowerCase())
@@ -133,7 +133,7 @@ class _AdminMapPageState extends State<AdminMapPage> {
                               });
                             },
                             child: const ListTile(
-                              title: Text('Available Tombs'),
+                              title: Text('Available Lots'),
                             ),
                           );
                         },
@@ -161,7 +161,7 @@ class _AdminMapPageState extends State<AdminMapPage> {
                                       dropdownValue = newValue!;
                                     });
                                   },
-                                  items: <String>['Tomb', 'Owner']
+                                  items: <String>['Lot', 'Owner']
                                       .map<DropdownMenuItem<String>>(
                                     (String value) {
                                       return DropdownMenuItem<String>(
@@ -189,7 +189,7 @@ class _AdminMapPageState extends State<AdminMapPage> {
                                             context: context,
                                             builder: (context) {
                                               return AlertDialog(
-                                                title: const Text('Tomb Info'),
+                                                title: const Text('Lot Info'),
                                                 content: SingleChildScrollView(
                                                   child: SizedBox(
                                                     width: double.infinity,
@@ -199,7 +199,7 @@ class _AdminMapPageState extends State<AdminMapPage> {
                                                               .start,
                                                       children: [
                                                         Text(
-                                                            'Tomb: ${tomb["tomb"]}'),
+                                                            'Lot: ${tomb["tomb"]}'),
                                                         Text(
                                                             'Coordinates: ${tomb["coords"][0].toStringAsFixed(2)}... ${tomb["coords"][1].toStringAsFixed(2)}...'),
                                                         Text(
@@ -250,7 +250,7 @@ class _AdminMapPageState extends State<AdminMapPage> {
                               });
                             },
                             child: const ListTile(
-                              title: Text('Not Available Tombs'),
+                              title: Text('Not Available Lots'),
                             ),
                           );
                         },
@@ -278,7 +278,7 @@ class _AdminMapPageState extends State<AdminMapPage> {
                                       dropdownValue = newValue!;
                                     });
                                   },
-                                  items: <String>['Tomb', 'Owner']
+                                  items: <String>['Lot', 'Owner']
                                       .map<DropdownMenuItem<String>>(
                                           (String value) {
                                     return DropdownMenuItem<String>(
@@ -305,7 +305,7 @@ class _AdminMapPageState extends State<AdminMapPage> {
                                             context: context,
                                             builder: (context) {
                                               return AlertDialog(
-                                                title: const Text('Tomb Info'),
+                                                title: const Text('Lot Info'),
                                                 content: SingleChildScrollView(
                                                   child: SizedBox(
                                                     width: double.infinity,
@@ -315,7 +315,7 @@ class _AdminMapPageState extends State<AdminMapPage> {
                                                               .start,
                                                       children: [
                                                         Text(
-                                                            'Tomb: ${tomb["tomb"]}'),
+                                                            'Lot: ${tomb["tomb"]}'),
                                                         Text(
                                                             'Coordinates: ${tomb["coords"][0].toStringAsFixed(2)}... ${tomb["coords"][1].toStringAsFixed(2)}...'),
                                                         Text(
@@ -369,7 +369,7 @@ class _AdminMapPageState extends State<AdminMapPage> {
                 onPressed: () {
                   _showAddDialog();
                 },
-                child: const Text('Add Tomb'),
+                child: const Text('Add Lot'),
               ),
             ),
             SizedBox(
@@ -420,7 +420,7 @@ class _AdminMapPageState extends State<AdminMapPage> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   const Text(
-                    'Add Tomb',
+                    'Add Lot',
                     style: TextStyle(
                       fontSize: 18.0,
                       fontWeight: FontWeight.bold,
@@ -428,7 +428,7 @@ class _AdminMapPageState extends State<AdminMapPage> {
                   ),
                   const SizedBox(height: 16.0),
                   TextFormField(
-                    decoration: const InputDecoration(labelText: 'Tomb'),
+                    decoration: const InputDecoration(labelText: 'Lot'),
                     onChanged: (value) {
                       setState(() {
                         tomb = value;

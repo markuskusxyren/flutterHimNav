@@ -12,6 +12,13 @@ class ExpiredItem {
   ExpiredItem(this.name, this.expiryDate);
 }
 
+class LegendItem {
+  final Color color;
+  final String label;
+
+  LegendItem({required this.color, required this.label});
+}
+
 class ClientDashboardPage extends StatelessWidget {
   final String userEmail;
 
@@ -266,7 +273,7 @@ class ClientDashboardPage extends StatelessWidget {
                                       CrossAxisAlignment.stretch,
                                   children: [
                                     const Text(
-                                      'Tomb Tracker',
+                                      'Lot Tracker',
                                       style: TextStyle(
                                         fontSize: 20,
                                         fontWeight: FontWeight.bold,
@@ -278,7 +285,7 @@ class ClientDashboardPage extends StatelessWidget {
                                         child: availedTombs.isEmpty
                                             ? const Center(
                                                 child: Text(
-                                                  'No availed tombs.',
+                                                  'No availed lots.',
                                                   style:
                                                       TextStyle(fontSize: 16.0),
                                                 ),
@@ -346,7 +353,7 @@ class ClientDashboardPage extends StatelessWidget {
                                                             Text(
                                                                 'Purchase Date: $formattedPurchaseDate'),
                                                             Text(
-                                                                'Expiry Date: $formattedExpiryDate'),
+                                                                'Forfeiture Date: $formattedExpiryDate'),
                                                           ],
                                                         ),
                                                       );
@@ -384,7 +391,7 @@ class ClientDashboardPage extends StatelessWidget {
                           children: [
                             Icon(Icons.calendar_month, size: 50),
                             Text(
-                              'Tomb Tracker',
+                              'Lot Tracker',
                               style: TextStyle(
                                 fontSize: 15,
                                 fontWeight: FontWeight.bold,
@@ -420,7 +427,7 @@ class ClientDashboardPage extends StatelessWidget {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   const Text(
-                                    'Tomb Markers',
+                                    'Lot Markers',
                                     style: TextStyle(
                                       fontSize: 20,
                                       fontWeight: FontWeight.bold,
@@ -457,7 +464,7 @@ class ClientDashboardPage extends StatelessWidget {
                           children: [
                             Icon(Icons.map, size: 50),
                             Text(
-                              'Tomb Markers',
+                              'Lot Markers',
                               style: TextStyle(
                                 fontSize: 15,
                                 fontWeight: FontWeight.bold,
@@ -478,61 +485,112 @@ class ClientDashboardPage extends StatelessWidget {
   }
 
   Widget _buildMap() {
-    return StreamBuilder<QuerySnapshot>(
-      stream: FirebaseFirestore.instance.collection('tombs').snapshots(),
-      builder: (context, snapshot) {
-        if (snapshot.hasData) {
-          final markers = snapshot.data!.docs
-              .where((doc) =>
-                  (doc.data() as Map<String, dynamic>)
-                      .containsKey('owner_email') &&
-                  doc['owner_email'] ==
-                      FirebaseAuth.instance.currentUser?.email)
-              .map((doc) {
-                final tombID = doc['tomb'] as String?;
-                final coords = doc['coords'] as List<dynamic>?;
+    GoogleMapController? mapController;
 
-                if (tombID != null && coords != null && coords.length >= 2) {
-                  final lat = coords[0] as double;
-                  final lng = coords[1] as double;
-
-                  return Marker(
-                    markerId: MarkerId(tombID),
-                    position: LatLng(lat, lng),
-                    infoWindow: InfoWindow(
-                      title: tombID,
-                      snippet: 'owner_email: ${doc['owner_email'] ?? ''}',
-                    ),
-                  );
-                }
-
-                return null;
-              })
-              .whereType<Marker>()
-              .toSet();
-
-          return GoogleMap(
-            markers: markers,
-            onMapCreated: (GoogleMapController controller) {
-              // You can perform additional map setup here if needed
-            },
-            initialCameraPosition: const CameraPosition(
-              target: LatLng(14.683531742290285, 121.05322763852632),
-              zoom: 16.0,
-            ),
-          );
-        } else if (snapshot.hasError) {
-          return Text('Error: ${snapshot.error}');
-        } else {
-          return const Center(
-            child: SizedBox(
-              width: 50,
-              height: 50,
-              child: CircularProgressIndicator(),
-            ),
-          );
+    return GestureDetector(
+      onPanUpdate: (details) {
+        if (details.delta.dy < 0) {
+          // Zoom in when the user swipes up
+          mapController?.animateCamera(CameraUpdate.zoomIn());
+        } else if (details.delta.dy > 0) {
+          // Zoom out when the user swipes down
+          mapController?.animateCamera(CameraUpdate.zoomOut());
         }
       },
+      child: StreamBuilder<QuerySnapshot>(
+        stream: FirebaseFirestore.instance.collection('tombs').snapshots(),
+        builder: (context, snapshot) {
+          if (snapshot.hasData) {
+            final currentUserEmail = FirebaseAuth.instance.currentUser?.email;
+            final markers = snapshot.data!.docs
+                .map((doc) {
+                  final tombID = doc['tomb'] as String?;
+                  final coords = doc['coords'] as List<dynamic>?;
+                  final isAvailable = doc['isAvailable'] as bool?;
+                  final ownerEmail = doc['owner_email'] as String?;
+
+                  if (tombID != null && coords != null && coords.length >= 2) {
+                    final lat = coords[0] as double;
+                    final lng = coords[1] as double;
+
+                    final markerColor = ownerEmail == currentUserEmail
+                        ? (isAvailable == true
+                            ? BitmapDescriptor.hueBlue
+                            : BitmapDescriptor.hueGreen)
+                        : (ownerEmail == null || ownerEmail.isEmpty
+                            ? BitmapDescriptor.hueRed
+                            : null);
+
+                    if (markerColor != null) {
+                      return Marker(
+                        markerId: MarkerId(tombID),
+                        position: LatLng(lat, lng),
+                        icon:
+                            BitmapDescriptor.defaultMarkerWithHue(markerColor),
+                        infoWindow: InfoWindow(
+                          title: tombID,
+                          snippet: 'owner_email: ${ownerEmail ?? ''}',
+                        ),
+                      );
+                    }
+                  }
+
+                  return null;
+                })
+                .whereType<Marker>()
+                .toSet();
+
+            // Legends
+            final legends = [
+              LegendItem(
+                  color: const Color.fromARGB(255, 87, 224, 92),
+                  label: '   Availed'),
+              LegendItem(color: Colors.red, label: 'Available'),
+            ];
+
+            return Stack(
+              children: [
+                GoogleMap(
+                  markers: markers,
+                  onMapCreated: (GoogleMapController controller) {
+                    mapController = controller;
+                    // You can perform additional map setup here if needed
+                  },
+                  initialCameraPosition: const CameraPosition(
+                    target: LatLng(14.683531742290285, 121.05322763852632),
+                    zoom: 16.0,
+                  ),
+                ),
+                Positioned(
+                  top: 16,
+                  right: 16,
+                  child: Column(
+                    children: legends
+                        .map((legend) => Row(
+                              children: [
+                                Container(
+                                  width: 16,
+                                  height: 16,
+                                  color: legend.color,
+                                ),
+                                const SizedBox(width: 8),
+                                Text(legend.label),
+                              ],
+                            ))
+                        .toList(),
+                  ),
+                ),
+              ],
+            );
+          } else if (snapshot.hasError) {
+            return Text('Error: ${snapshot.error}');
+          } else {
+            return const Center(
+              child: CircularProgressIndicator(),
+            );
+          }
+        },
+      ),
     );
   }
 

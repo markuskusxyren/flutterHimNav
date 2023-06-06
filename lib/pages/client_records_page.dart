@@ -91,7 +91,7 @@ class _ClientRecordsPageState extends State<ClientRecordsPage> {
               const SizedBox(height: 3),
               Text('Sex: $sex'),
               const SizedBox(height: 3),
-              Text('Tomb: $tomb'),
+              Text('Lot: $tomb'),
             ],
           ),
           actions: [
@@ -237,7 +237,7 @@ class _ClientRecordsPageState extends State<ClientRecordsPage> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text('Purchase Date: $graveAvailDate'),
-                                Text('Tomb: $tomb'),
+                                Text('Lot: $tomb'),
                               ],
                             ),
                             trailing: IconButton(
