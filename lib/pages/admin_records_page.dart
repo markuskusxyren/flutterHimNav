@@ -40,33 +40,72 @@ class _AdminRecordsPageState extends State<AdminRecordsPage> {
         final sex = recordData?['sex'];
         final tomb = recordData?['tomb'];
 
-        return AlertDialog(
-          title: const Text('Record Details'),
-          content: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text('Name: $name'),
-              const SizedBox(height: 3),
-              Text('Date of Birth: $dateOfBirth'),
-              const SizedBox(height: 3),
-              Text('Date of Death: $dateOfDeath'),
-              const SizedBox(height: 3),
-              Text('Purchase Date: $graveAvailDate'),
-              const SizedBox(height: 3),
-              Text('Sex: $sex'),
-              const SizedBox(height: 3),
-              Text('Lot: $tomb'),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              child: const Text('Close'),
-            ),
-          ],
+        // Retrieve tomb information from Firestore
+        final tombQuery = FirebaseFirestore.instance
+            .collection('tombs')
+            .where('tomb', isEqualTo: tomb)
+            .get();
+
+        return FutureBuilder<QuerySnapshot>(
+          future: tombQuery,
+          builder:
+              (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const AlertDialog(
+                title: Text('Record Details'),
+                content: SizedBox(
+                  width: 60, // Adjust the size as needed
+                  height: 60, // Adjust the size as needed
+                  child: Center(
+                    child: CircularProgressIndicator(),
+                  ),
+                ),
+              );
+            } else if (snapshot.hasError) {
+              return const AlertDialog(
+                title: Text('Record Details'),
+                content: Text('An error occurred while loading the data.'),
+              );
+            } else {
+              final tombDocs = snapshot.data?.docs;
+              final ownerEmail = tombDocs != null && tombDocs.isNotEmpty
+                  ? tombDocs.first.get('owner_email')
+                  : null;
+
+              return AlertDialog(
+                title: const Text('Record Details'),
+                content: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text('Name: $name'),
+                    const SizedBox(height: 3),
+                    Text('Date of Birth: $dateOfBirth'),
+                    const SizedBox(height: 3),
+                    Text('Date of Death: $dateOfDeath'),
+                    const SizedBox(height: 3),
+                    Text('Purchase Date: $graveAvailDate'),
+                    const SizedBox(height: 3),
+                    Text('Sex: $sex'),
+                    const SizedBox(height: 3),
+                    Text('Lot: $tomb'),
+                    if (ownerEmail != null) ...[
+                      const SizedBox(height: 3),
+                      Text('Owner: $ownerEmail'),
+                    ],
+                  ],
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                    },
+                    child: const Text('Close'),
+                  ),
+                ],
+              );
+            }
+          },
         );
       },
     );
@@ -251,6 +290,7 @@ class _AdminRecordsPageState extends State<AdminRecordsPage> {
                             'grave_avail_date': Timestamp.fromDate(
                               selectedGraveAvailDate!,
                             ),
+                            'createdAt': FieldValue.serverTimestamp(),
                           });
 
                           Navigator.pop(context);

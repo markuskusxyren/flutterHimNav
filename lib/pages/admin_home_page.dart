@@ -4,8 +4,11 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:himlayang_nav/pages/login_page.dart';
 import 'package:intl/intl.dart';
+
+import 'client_home_page.dart';
 
 class ExpiredItem {
   final String name;
@@ -623,6 +626,175 @@ class AdminDashboardPage extends StatelessWidget {
                 ),
               ),
             ),
+            GestureDetector(
+              onTap: () {
+                showModalBottomSheet(
+                  context: context,
+                  isScrollControlled: true,
+                  shape: const RoundedRectangleBorder(
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(20.0),
+                      topRight: Radius.circular(20.0),
+                    ),
+                  ),
+                  builder: (BuildContext context) {
+                    return SizedBox(
+                      height: MediaQuery.of(context).size.height *
+                          0.5, // Set the height to half of the screen height
+                      child: Padding(
+                        padding: const EdgeInsets.only(
+                          left: 16.0,
+                          right: 16.0,
+                          top: 16.0,
+                          bottom: 0.0, // Set bottom padding to 0
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            const Text(
+                              'Recent Records',
+                              style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 16.0),
+                            Expanded(
+                              child: FutureBuilder<List<String>>(
+                                future: getRecentDeceasedRecords(),
+                                builder: (context, snapshot) {
+                                  if (snapshot.hasData) {
+                                    final recentRecords = snapshot.data!;
+                                    return ListView.builder(
+                                      itemCount: recentRecords.length,
+                                      itemBuilder: (context, index) {
+                                        final record = recentRecords[index];
+                                        return ListTile(
+                                          title: Text(record),
+                                        );
+                                      },
+                                    );
+                                  } else if (snapshot.hasError) {
+                                    return Text('Error: ${snapshot.error}');
+                                  } else {
+                                    return const Center(
+                                      child: CircularProgressIndicator(),
+                                    );
+                                  }
+                                },
+                              ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.all(16.0),
+                              child: ElevatedButton(
+                                onPressed: () {
+                                  Navigator.of(context).pop();
+                                },
+                                child: const Text('Close'),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                );
+              },
+              child: Card(
+                elevation: 5,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20.0),
+                ),
+                child: const Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.history, size: 50),
+                      Text(
+                        'Recent Records',
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            GestureDetector(
+              onTap: () {
+                showModalBottomSheet(
+                  context: context,
+                  isScrollControlled: true,
+                  shape: const RoundedRectangleBorder(
+                    borderRadius: BorderRadius.only(
+                      topLeft: Radius.circular(20.0),
+                      topRight: Radius.circular(20.0),
+                    ),
+                  ),
+                  builder: (BuildContext context) {
+                    return SizedBox(
+                      height: MediaQuery.of(context).size.height * 0.7,
+                      child: Padding(
+                        padding: const EdgeInsets.only(
+                          left: 16.0,
+                          right: 16.0,
+                          top: 16.0,
+                          bottom: 0.0,
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Lot Markers',
+                              style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 16.0),
+                            Expanded(
+                              child: _buildMap(),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.all(16.0),
+                              child: ElevatedButton(
+                                onPressed: () {
+                                  Navigator.of(context).pop();
+                                },
+                                child: const Text('Close'),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                );
+              },
+              child: Card(
+                elevation: 5,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20.0),
+                ),
+                child: const Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(Icons.map, size: 50),
+                      Text(
+                        'Lot Markers',
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
           ],
         ),
       ),
@@ -785,4 +957,124 @@ class MyApp extends StatelessWidget {
       home: const LoginPage(),
     );
   }
+}
+
+Future<List<String>> getRecentDeceasedRecords() async {
+  final snapshot = await FirebaseFirestore.instance
+      .collection('deceased')
+      .orderBy('createdAt', descending: true)
+      .limit(5)
+      .get();
+
+  final recentRecords =
+      snapshot.docs.map((doc) => doc['name'] as String).toList();
+
+  return recentRecords;
+}
+
+Widget _buildMap() {
+  GoogleMapController? mapController;
+
+  return GestureDetector(
+    onPanUpdate: (details) {
+      if (details.delta.dy < 0) {
+        // Zoom in when the user swipes up
+        mapController?.animateCamera(CameraUpdate.zoomIn());
+      } else if (details.delta.dy > 0) {
+        // Zoom out when the user swipes down
+        mapController?.animateCamera(CameraUpdate.zoomOut());
+      }
+    },
+    child: StreamBuilder<QuerySnapshot>(
+      stream: FirebaseFirestore.instance.collection('tombs').snapshots(),
+      builder: (context, snapshot) {
+        if (snapshot.hasData) {
+          final currentUserEmail = FirebaseAuth.instance.currentUser?.email;
+          final markers = snapshot.data!.docs
+              .map((doc) {
+                final tombID = doc['tomb'] as String?;
+                final coords = doc['coords'] as List<dynamic>?;
+                final isAvailable = doc['isAvailable'] as bool?;
+                final ownerEmail = doc['owner_email'] as String?;
+
+                if (tombID != null &&
+                    coords != null &&
+                    coords.length >= 2 &&
+                    isAvailable == true) {
+                  final lat = coords[0] as double;
+                  final lng = coords[1] as double;
+
+                  final markerColor = ownerEmail == currentUserEmail
+                      ? BitmapDescriptor.hueBlue
+                      : (ownerEmail == null || ownerEmail.isEmpty
+                          ? BitmapDescriptor.hueRed
+                          : null);
+
+                  if (markerColor != null) {
+                    return Marker(
+                      markerId: MarkerId(tombID),
+                      position: LatLng(lat, lng),
+                      icon: BitmapDescriptor.defaultMarkerWithHue(markerColor),
+                      infoWindow: InfoWindow(
+                        title: tombID,
+                        snippet: 'owner_email: ${ownerEmail ?? ''}',
+                      ),
+                    );
+                  }
+                }
+
+                return null;
+              })
+              .whereType<Marker>()
+              .toSet();
+
+          // Legends
+          final legends = [
+            LegendItem(color: Colors.red, label: 'Available'),
+          ];
+
+          return Stack(
+            children: [
+              GoogleMap(
+                markers: markers,
+                onMapCreated: (GoogleMapController controller) {
+                  mapController = controller;
+                  // You can perform additional map setup here if needed
+                },
+                initialCameraPosition: const CameraPosition(
+                  target: LatLng(14.683531742290285, 121.05322763852632),
+                  zoom: 16.0,
+                ),
+              ),
+              Positioned(
+                top: 16,
+                right: 16,
+                child: Column(
+                  children: legends
+                      .map((legend) => Row(
+                            children: [
+                              Container(
+                                width: 16,
+                                height: 16,
+                                color: legend.color,
+                              ),
+                              const SizedBox(width: 8),
+                              Text(legend.label),
+                            ],
+                          ))
+                      .toList(),
+                ),
+              ),
+            ],
+          );
+        } else if (snapshot.hasError) {
+          return Text('Error: ${snapshot.error}');
+        } else {
+          return const Center(
+            child: CircularProgressIndicator(),
+          );
+        }
+      },
+    ),
+  );
 }

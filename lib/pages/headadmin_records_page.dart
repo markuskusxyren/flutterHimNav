@@ -40,45 +40,84 @@ class _HeadRecordsPageState extends State<HeadRecordsPage> {
         final sex = recordData?['sex'];
         final tomb = recordData?['tomb'];
 
-        return AlertDialog(
-          title: const Text('Record Details'),
-          content: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text('Name: $name'),
-              const SizedBox(height: 3),
-              Text('Date of Birth: $dateOfBirth'),
-              const SizedBox(height: 3),
-              Text('Date of Death: $dateOfDeath'),
-              const SizedBox(height: 3),
-              Text('Purchase Date: $graveAvailDate'),
-              const SizedBox(height: 3),
-              Text('Sex: $sex'),
-              const SizedBox(height: 3),
-              Text('Lot: $tomb'),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                _showEditDialog(document);
-              },
-              child: const Text('Edit'),
-            ),
-            TextButton(
-              onPressed: () {
-                _showDeleteConfirmation(document.id);
-              },
-              child: const Text('Delete'),
-            ),
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-              },
-              child: const Text('Close'),
-            ),
-          ],
+        // Retrieve tomb information from Firestore
+        final tombQuery = FirebaseFirestore.instance
+            .collection('tombs')
+            .where('tomb', isEqualTo: tomb)
+            .get();
+
+        return FutureBuilder<QuerySnapshot>(
+          future: tombQuery,
+          builder:
+              (BuildContext context, AsyncSnapshot<QuerySnapshot> snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const AlertDialog(
+                title: Text('Record Details'),
+                content: SizedBox(
+                  width: 60, // Adjust the size as needed
+                  height: 60, // Adjust the size as needed
+                  child: Center(
+                    child: CircularProgressIndicator(),
+                  ),
+                ),
+              );
+            } else if (snapshot.hasError) {
+              return const AlertDialog(
+                title: Text('Record Details'),
+                content: Text('An error occurred while loading the data.'),
+              );
+            } else {
+              final tombDocs = snapshot.data?.docs;
+              final ownerEmail = tombDocs != null && tombDocs.isNotEmpty
+                  ? tombDocs.first.get('owner_email')
+                  : null;
+
+              return AlertDialog(
+                title: const Text('Record Details'),
+                content: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text('Name: $name'),
+                    const SizedBox(height: 3),
+                    Text('Date of Birth: $dateOfBirth'),
+                    const SizedBox(height: 3),
+                    Text('Date of Death: $dateOfDeath'),
+                    const SizedBox(height: 3),
+                    Text('Purchase Date: $graveAvailDate'),
+                    const SizedBox(height: 3),
+                    Text('Sex: $sex'),
+                    const SizedBox(height: 3),
+                    Text('Lot: $tomb'),
+                    if (ownerEmail != null) ...[
+                      const SizedBox(height: 3),
+                      Text('Owner: $ownerEmail'),
+                    ],
+                  ],
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () {
+                      _showEditDialog(document);
+                    },
+                    child: const Text('Edit'),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      _showDeleteConfirmation(document.id);
+                    },
+                    child: const Text('Delete'),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                    },
+                    child: const Text('Close'),
+                  ),
+                ],
+              );
+            }
+          },
         );
       },
     );
@@ -92,6 +131,7 @@ class _HeadRecordsPageState extends State<HeadRecordsPage> {
     DateTime dateOfDeath = recordData?['date_of_death'].toDate();
     String tomb = recordData?['tomb'];
     DateTime graveAvailDate = recordData?['grave_avail_date'].toDate();
+    DateTime createdAt = recordData?['createdAt'].toDate();
 
     showDialog(
       context: context,
@@ -176,6 +216,21 @@ class _HeadRecordsPageState extends State<HeadRecordsPage> {
                     'Purchase Date: ${_dateFormat.format(graveAvailDate)}',
                   ),
                 ),
+                const SizedBox(height: 16.0),
+                ElevatedButton(
+                  onPressed: () async {
+                    final DateTime? picked =
+                        await _selectDate(context, createdAt);
+                    if (picked != null) {
+                      setState(() {
+                        createdAt = picked;
+                      });
+                    }
+                  },
+                  child: Text(
+                    'Created At: ${_dateFormat.format(createdAt)}',
+                  ),
+                ),
               ],
             ),
           ),
@@ -189,9 +244,8 @@ class _HeadRecordsPageState extends State<HeadRecordsPage> {
                   'date_of_birth': Timestamp.fromDate(dateOfBirth),
                   'date_of_death': Timestamp.fromDate(dateOfDeath),
                   'grave_avail_date': Timestamp.fromDate(graveAvailDate),
+                  'createdAt': Timestamp.fromDate(createdAt),
                 });
-
-                Navigator.pop(context);
                 Navigator.pop(context);
               },
               child: const Text('Save'),
@@ -409,7 +463,7 @@ class _HeadRecordsPageState extends State<HeadRecordsPage> {
                           firestore.collection('deceased').add({
                             'name': name,
                             'sex': sex,
-                            'Lot': tomb,
+                            'tomb': tomb,
                             'date_of_birth': Timestamp.fromDate(
                               selectedDateOfBirth!,
                             ),
@@ -419,6 +473,7 @@ class _HeadRecordsPageState extends State<HeadRecordsPage> {
                             'grave_avail_date': Timestamp.fromDate(
                               selectedGraveAvailDate!,
                             ),
+                            'createdAt': FieldValue.serverTimestamp(),
                           });
 
                           Navigator.pop(context);
