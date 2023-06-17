@@ -5,7 +5,7 @@ import 'package:flutter_polyline_points/flutter_polyline_points.dart';
 import 'package:location/location.dart' as loc;
 import 'package:location/location.dart';
 import 'package:url_launcher/url_launcher.dart';
-import 'dart:math' show cos, sqrt, asin;
+import 'dart:math' show asin, cos, max, min, sqrt;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 Future main() async {
@@ -35,12 +35,37 @@ class _NavigationScreenState extends State<NavigationScreen> {
   bool isFirstLocationUpdate = true;
   bool isMapInitialized = false;
   bool isLocationPermissionGranted = false;
+  bool shouldAnimateToCurrentLocation = true;
 
   @override
   void initState() {
     super.initState();
     checkPermissions();
-    addMarker();
+    addMarker(LatLng(widget.lat, widget.lng));
+
+    // Retrieve current location and assign it to curLocation
+    locationSubscription =
+        location.onLocationChanged.listen((loc.LocationData locationData) {
+      if (mounted) {
+        setState(() {
+          curLocation = LatLng(
+            locationData.latitude!,
+            locationData.longitude!,
+          );
+          updateCurrentLocationMarker();
+        });
+      }
+    });
+  }
+
+  void updateCurrentLocationMarker() {
+    if (sourcePosition != null) {
+      setState(() {
+        sourcePosition = sourcePosition!.copyWith(
+          positionParam: curLocation,
+        );
+      });
+    }
   }
 
   Future<void> checkPermissions() async {
@@ -84,6 +109,8 @@ class _NavigationScreenState extends State<NavigationScreen> {
         }
         return;
       }
+      isLocationPermissionGranted = true;
+      await getNavigation();
     }
 
     isLocationPermissionGranted = true;
@@ -111,7 +138,6 @@ class _NavigationScreenState extends State<NavigationScreen> {
                     zoom: 16,
                   ),
                   markers: {sourcePosition!, destinationPosition!},
-                  mapType: MapType.hybrid,
                   onMapCreated: (GoogleMapController controller) async {
                     _controller.complete(controller);
                     _currentPosition = await location.getLocation();
@@ -121,12 +147,29 @@ class _NavigationScreenState extends State<NavigationScreen> {
                     );
 
                     if (!isMapInitialized) {
-                      controller.animateCamera(
-                        CameraUpdate.newLatLngZoom(
-                          curLocation,
-                          16.0,
-                        ),
-                      );
+                      // Delay the animation for 1.5 seconds
+                      if (shouldAnimateToCurrentLocation) {
+                        await Future.delayed(
+                            const Duration(milliseconds: 1500));
+                        shouldAnimateToCurrentLocation = false;
+                        // Zoom out to show both markers
+                        controller.animateCamera(
+                          CameraUpdate.newLatLngBounds(
+                            LatLngBounds(
+                              southwest: LatLng(
+                                min(curLocation.latitude, widget.lat),
+                                min(curLocation.longitude, widget.lng),
+                              ),
+                              northeast: LatLng(
+                                max(curLocation.latitude, widget.lat),
+                                max(curLocation.longitude, widget.lng),
+                              ),
+                            ),
+                            100, // padding
+                          ),
+                        );
+                      }
+
                       isMapInitialized = true;
                     }
                   },
@@ -165,7 +208,7 @@ class _NavigationScreenState extends State<NavigationScreen> {
                         ),
                         onPressed: () async {
                           await launchUrl(Uri.parse(
-                              'google.navigation:q=${widget.lat}, ${widget.lng}&key=AIzaSyCKPYZdoTx6j_6dVZu1MwtTt1Kzfr9h668'));
+                              'google.navigation:q=${widget.lat}, ${widget.lng}&key=$api'));
                         },
                       ),
                     ),
@@ -176,42 +219,32 @@ class _NavigationScreenState extends State<NavigationScreen> {
     );
   }
 
-  getNavigation() async {
-    final GoogleMapController controller = await _controller.future;
-    location.changeSettings(accuracy: loc.LocationAccuracy.high);
+  Future<void> getNavigation() async {
+    PolylinePoints polylinePoints = PolylinePoints();
+    List<LatLng> polylineCoordinates = [];
 
-    _currentPosition = await location.getLocation();
-    curLocation = LatLng(
-      _currentPosition!.latitude!,
-      _currentPosition!.longitude!,
+    PolylineResult result = await polylinePoints.getRouteBetweenCoordinates(
+      'AIzaSyCKPYZdoTx6j_6dVZu1MwtTt1Kzfr9h668',
+      PointLatLng(curLocation.latitude, curLocation.longitude),
+      PointLatLng(widget.lat, widget.lng),
+      travelMode: TravelMode.driving,
     );
-    locationSubscription =
-        location.onLocationChanged.listen((LocationData currentLocation) {
-      if (mounted) {
-        controller
-            .showMarkerInfoWindow(MarkerId(sourcePosition!.markerId.value));
-        setState(() {
-          curLocation = LatLng(
-            currentLocation.latitude!,
-            currentLocation.longitude!,
-          );
-          sourcePosition = Marker(
-            markerId: MarkerId(currentLocation.toString()),
-            icon: BitmapDescriptor.defaultMarkerWithHue(
-              BitmapDescriptor.hueBlue,
-            ),
-            position: LatLng(
-              currentLocation.latitude!,
-              currentLocation.longitude!,
-            ),
-            infoWindow: InfoWindow(
-              title:
-                  '${double.parse((getDistance(LatLng(widget.lat, widget.lng)).toStringAsFixed(2)))} km',
-            ),
-          );
-        });
-        getDirections(LatLng(widget.lat, widget.lng));
+
+    if (result.points.isNotEmpty) {
+      for (var point in result.points) {
+        polylineCoordinates.add(LatLng(point.latitude, point.longitude));
       }
+    }
+
+    setState(() {
+      Polyline polyline = Polyline(
+        polylineId: const PolylineId('route'),
+        color: Colors.blue,
+        points: polylineCoordinates,
+        width: 5,
+      );
+
+      polylines[const PolylineId('route')] = polyline;
     });
   }
 
@@ -229,8 +262,9 @@ class _NavigationScreenState extends State<NavigationScreen> {
         polylineCoordinates.add(LatLng(point.latitude, point.longitude));
         points.add({'lat': point.latitude, 'lng': point.longitude});
       }
-    }
+    } else {}
     addPolyLine(polylineCoordinates);
+    addMarker(dst); // Add the destination marker to the map
   }
 
   addPolyLine(List<LatLng> polylineCoordinates) {
@@ -263,7 +297,7 @@ class _NavigationScreenState extends State<NavigationScreen> {
     );
   }
 
-  addMarker() {
+  addMarker(LatLng destination) {
     setState(() {
       sourcePosition = Marker(
         markerId: const MarkerId('source'),
@@ -272,7 +306,7 @@ class _NavigationScreenState extends State<NavigationScreen> {
       );
       destinationPosition = Marker(
         markerId: const MarkerId('destination'),
-        position: LatLng(widget.lat, widget.lng),
+        position: destination,
         icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueCyan),
       );
     });

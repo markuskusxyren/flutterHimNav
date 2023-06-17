@@ -66,6 +66,32 @@ class _ClientMapPageState extends State<ClientMapPage> {
           selectedUnitId = tombs.isNotEmpty ? null : null;
 
           allTombs = tombs;
+
+          // Fetch deceased collection for connecting lots to names
+          _firestore
+              .collection('deceased')
+              .get()
+              .then((QuerySnapshot snapshot) {
+            List<Map<String, dynamic>> deceasedList = snapshot.docs.map((doc) {
+              Map<String, dynamic> data = doc.data() as Map<String, dynamic>;
+              String tomb = data['tomb'] ?? '';
+              String name = data['name'] ?? '';
+              return {
+                'tomb': tomb,
+                'name': name,
+              };
+            }).toList();
+
+            // Connect lots to names based on tomb field
+            for (var tomb in allTombs) {
+              String tombName = tomb['tomb'] ?? '';
+              List<String> connectedNames = deceasedList
+                  .where((deceased) => deceased['tomb'] == tombName)
+                  .map((deceased) => deceased['name'] as String)
+                  .toList();
+              tomb['connectedNames'] = connectedNames;
+            }
+          });
         });
       });
     }
@@ -103,10 +129,14 @@ class _ClientMapPageState extends State<ClientMapPage> {
             (tomb) => !tomb['isAvailable'] && tomb['owner'] == currentUserEmail)
         .toList();
 
-    List<Map<String, dynamic>> allTombsFiltered = allTombs
-        .where((tomb) =>
-            tomb['tomb'].toLowerCase().contains(searchAll?.toLowerCase() ?? ''))
-        .toList();
+    List<Map<String, dynamic>> allTombsFiltered = allTombs.where((tomb) {
+      String tombName = tomb['tomb'] ?? '';
+      List<String> connectedNames = tomb['connectedNames'] ?? [];
+
+      return tombName.toLowerCase().contains(searchAll?.toLowerCase() ?? '') ||
+          connectedNames.any((name) =>
+              name.toLowerCase().contains(searchAll?.toLowerCase() ?? ''));
+    }).toList();
 
     return Scaffold(
       body: Padding(
@@ -397,6 +427,12 @@ class _ClientMapPageState extends State<ClientMapPage> {
                                           ? Colors.lightBlueAccent
                                           : null,
                                       title: Text(tomb["tomb"]),
+                                      subtitle: tomb['connectedNames'] !=
+                                                  null &&
+                                              tomb['connectedNames'].isNotEmpty
+                                          ? Text(
+                                              'Deceased: ${tomb['connectedNames'].join(", ")}')
+                                          : null,
                                       onTap: () {
                                         setState(() {
                                           selectedUnitId = tomb["tomb"];
