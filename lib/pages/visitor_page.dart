@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'navigation_page.dart';
 
 final _firestore = FirebaseFirestore.instance;
@@ -25,7 +24,7 @@ class _VisitorMapPageState extends State<VisitorMapPage> {
   String? selectedAvailedUnitId;
   String dropdownValue = 'Tomb';
   String? searchAll;
-  bool reservedByCurrentUser = false;
+
   String? selectedAllTombId;
 
   @override
@@ -34,68 +33,51 @@ class _VisitorMapPageState extends State<VisitorMapPage> {
     getTombs();
   }
 
-  String? searchAvailable;
-
   Future<void> getTombs() async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user != null) {
-      final tombSnapshot = await _firestore.collection('tombs').get();
-      final deceasedSnapshot = await _firestore.collection('deceased').get();
+    final tombSnapshot = await _firestore.collection('tombs').get();
+    final deceasedSnapshot = await _firestore.collection('deceased').get();
 
-      setState(() {
-        allTombs = tombSnapshot.docs.map((doc) {
-          Map<String, dynamic> data = doc.data();
-          List<double> coords = data.containsKey('coords')
-              ? List<double>.from(data['coords'])
-              : [];
-          String tomb = data['tomb'] ?? '';
-          bool isAvailable = data['isAvailable'] ?? false;
-          String ownerEmail = data['owner_email'] ?? '';
-          return {
-            "documentID": doc.id,
-            "coords": coords,
-            "tomb": tomb,
-            "isAvailable": isAvailable,
-            "owner": ownerEmail,
-          };
-        }).toList();
+    setState(() {
+      allTombs = tombSnapshot.docs.map((doc) {
+        Map<String, dynamic> data = doc.data();
+        List<double> coords =
+            data.containsKey('coords') ? List<double>.from(data['coords']) : [];
+        String tomb = data['tomb'] ?? '';
+        bool isAvailable = data['isAvailable'] ?? false;
+        String ownerEmail = data['owner_email'] ?? '';
+        return {
+          "documentID": doc.id,
+          "coords": coords,
+          "tomb": tomb,
+          "isAvailable": isAvailable,
+          "owner": ownerEmail,
+        };
+      }).toList();
 
-        List<Map<String, dynamic>> deceasedList =
-            deceasedSnapshot.docs.map((doc) {
-          Map<String, dynamic> data = doc.data();
-          String tomb = data['tomb'] ?? '';
-          String name = data['name'] ?? '';
-          return {
-            'tomb': tomb,
-            'name': name,
-          };
-        }).toList();
+      List<Map<String, dynamic>> deceasedList =
+          deceasedSnapshot.docs.map((doc) {
+        Map<String, dynamic> data = doc.data();
+        String tomb = data['tomb'] ?? '';
+        String name = data['name'] ?? '';
+        return {
+          'tomb': tomb,
+          'name': name,
+        };
+      }).toList();
 
-        for (var tomb in allTombs) {
-          String tombName = tomb['tomb'] ?? '';
-          List<String> connectedNames = deceasedList
-              .where((deceased) => deceased['tomb'] == tombName)
-              .map((deceased) => deceased['name'] as String)
-              .toList();
-          tomb['connectedNames'] = connectedNames;
-        }
-      });
-    }
-  }
-
-  String? currentUserEmail;
-
-  void getCurrentUserEmail() {
-    User? user = FirebaseAuth.instance.currentUser;
-    if (user != null) {
-      currentUserEmail = user.email;
-    }
+      for (var tomb in allTombs) {
+        String tombName = tomb['tomb'] ?? '';
+        List<String> connectedNames = deceasedList
+            .where((deceased) => deceased['tomb'] == tombName)
+            .map((deceased) => deceased['name'] as String)
+            .toList();
+        tomb['connectedNames'] = connectedNames;
+      }
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    getCurrentUserEmail(); // Get current user email on build
-
     List<Map<String, dynamic>> allTombsFiltered = allTombs.where((tomb) {
       String tombName = tomb['tomb'] ?? '';
       List<String> connectedNames = tomb['connectedNames'] ?? [];
