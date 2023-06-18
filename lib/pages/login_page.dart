@@ -4,6 +4,7 @@ import 'package:himlayang_nav/components/my_textfield.dart';
 import 'package:himlayang_nav/pages/register_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'phoneauth_page.dart';
+import 'visitor_page.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({Key? key}) : super(key: key);
@@ -35,6 +36,16 @@ class _LoginPageState extends State<LoginPage> {
         showMessage('Failed to send password reset email. Please try again.');
       }
     }
+  }
+
+  // Callback function for visitor sign-in
+  void continueAsVisitor() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const VisitorMapPage(),
+      ),
+    );
   }
 
   // sign user in method
@@ -288,8 +299,18 @@ class _LoginPageState extends State<LoginPage> {
                         buttonText: 'Sign In',
                       ),
 
-                      const SizedBox(height: 25),
-
+                      const SizedBox(height: 10),
+                      // Add the "Continue as Visitor" button
+                      Align(
+                        alignment: Alignment.bottomCenter,
+                        child: Padding(
+                          padding: const EdgeInsets.only(bottom: 20.0),
+                          child: MyButton(
+                            onTap: continueAsVisitor,
+                            buttonText: 'Continue as Visitor',
+                          ),
+                        ),
+                      ),
                       // not a member? register now
                       Padding(
                         padding: const EdgeInsets.symmetric(

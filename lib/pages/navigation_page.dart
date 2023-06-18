@@ -177,16 +177,18 @@ class _NavigationScreenState extends State<NavigationScreen> {
                 Positioned(
                   top: 16,
                   left: 5,
-                  child: Container(
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Colors.white.withOpacity(0.5),
-                    ),
-                    child: IconButton(
-                      icon: const Icon(Icons.arrow_back),
-                      onPressed: () {
-                        Navigator.pop(context);
-                      },
+                  child: SafeArea(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Colors.white.withOpacity(0.5),
+                      ),
+                      child: IconButton(
+                        icon: const Icon(Icons.arrow_back),
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+                      ),
                     ),
                   ),
                 ),
@@ -224,7 +226,7 @@ class _NavigationScreenState extends State<NavigationScreen> {
     List<LatLng> polylineCoordinates = [];
 
     PolylineResult result = await polylinePoints.getRouteBetweenCoordinates(
-      'AIzaSyCKPYZdoTx6j_6dVZu1MwtTt1Kzfr9h668',
+      api!,
       PointLatLng(curLocation.latitude, curLocation.longitude),
       PointLatLng(widget.lat, widget.lng),
       travelMode: TravelMode.driving,
@@ -252,7 +254,7 @@ class _NavigationScreenState extends State<NavigationScreen> {
     List<LatLng> polylineCoordinates = [];
     List<dynamic> points = [];
     PolylineResult result = await polylinePoints.getRouteBetweenCoordinates(
-      'AIzaSyCKPYZdoTx6j_6dVZu1MwtTt1Kzfr9h668',
+      api!,
       PointLatLng(curLocation.latitude, curLocation.longitude),
       PointLatLng(dst.latitude, dst.longitude),
       travelMode: TravelMode.driving,
