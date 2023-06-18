@@ -114,6 +114,65 @@ class _NavigationScreenState extends State<NavigationScreen> {
     }
 
     isLocationPermissionGranted = true;
+
+    // Retrieve current location
+    _currentPosition = await location.getLocation();
+    if (_currentPosition != null) {
+      curLocation = LatLng(
+        _currentPosition!.latitude!,
+        _currentPosition!.longitude!,
+      );
+      updateCurrentLocationMarker();
+      if (!isMapInitialized) {
+        // Delay the animation for 1.5 seconds
+        if (shouldAnimateToCurrentLocation) {
+          await Future.delayed(const Duration(milliseconds: 1500));
+          shouldAnimateToCurrentLocation = false;
+          // Zoom out to show both markers
+          final GoogleMapController controller = await _controller.future;
+          controller.animateCamera(
+            CameraUpdate.newLatLngBounds(
+              LatLngBounds(
+                southwest: LatLng(
+                  min(curLocation.latitude, widget.lat),
+                  min(curLocation.longitude, widget.lng),
+                ),
+                northeast: LatLng(
+                  max(curLocation.latitude, widget.lat),
+                  max(curLocation.longitude, widget.lng),
+                ),
+              ),
+              100, // padding
+            ),
+          );
+        }
+        isMapInitialized = true;
+      }
+    } else {
+      // Handle case when current location is not available
+      if (mounted) {
+        (showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: const Text('Location Not Available'),
+              content: const Text(
+                'Unable to retrieve current location. Please try again.',
+              ),
+              actions: [
+                TextButton(
+                  child: const Text('OK'),
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                ),
+              ],
+            );
+          },
+        ));
+      }
+    }
+
     getNavigation();
   }
 
@@ -210,7 +269,7 @@ class _NavigationScreenState extends State<NavigationScreen> {
                         ),
                         onPressed: () async {
                           await launchUrl(Uri.parse(
-                              'google.navigation:q=${widget.lat}, ${widget.lng}&key=$api'));
+                              'google.navigation:q=${widget.lat}, ${widget.lng}&key=AIzaSyCKPYZdoTx6j_6dVZu1MwtTt1Kzfr9h668'));
                         },
                       ),
                     ),
